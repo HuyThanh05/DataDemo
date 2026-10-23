@@ -1,0 +1,21 @@
+# Thư viện và file build
+**/node_modules/
+**/target/
+**/dist/
+
+# Mật khẩu và khóa mã hóa
+backend/application-local.properties
+backend/.local/
+.env
+.env.*
+!.env.example
+
+# File tạm và lịch sử editor
+.history/
+tmp/
+**/.idea/
+**/.vscode/
+*.log
+
+# CSV giữ ở máy, chưa đưa lên GitHub
+data/**/*.csv

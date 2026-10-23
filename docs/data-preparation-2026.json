@@ -1,0 +1,121 @@
+{
+  "input": "data\\raw\\diem_thi_2026_da_nang.csv",
+  "output": "data\\processed\\diem_thi_2026_da_nang_long.csv",
+  "sourceSha256": "978539d9ff43ceb54a9d617e9e1d10cc9b17de4d131ccdb3f9159fb4c095507d",
+  "outputSha256": "dadd961f7ca048e95f15959d568e5ffd348c98088d2fc680a8558e2372ec6aaa",
+  "sourceRows": 35526,
+  "candidates": 35526,
+  "exactDuplicateRowsRemoved": 0,
+  "scoreRows": 140567,
+  "missingSubjectCellsOmitted": 285745,
+  "zeroScoresPreserved": 2,
+  "checks": {
+    "rawFileUnchanged": true,
+    "candidateCountMatches": true,
+    "perSubjectCountsAndSumsMatch": true
+  },
+  "subjects": {
+    "CongNgheCongNghiep": {
+      "count": 90,
+      "sumCents": 62745,
+      "zeroCount": 0,
+      "average": 6.971666666666668
+    },
+    "CongNgheNongNghiep": {
+      "count": 2071,
+      "sumCents": 1331570,
+      "zeroCount": 0,
+      "average": 6.4295992274263645
+    },
+    "DiaLy": {
+      "count": 9680,
+      "sumCents": 4754940,
+      "zeroCount": 0,
+      "average": 4.912128099173554
+    },
+    "HoaHoc": {
+      "count": 8437,
+      "sumCents": 5445615,
+      "zeroCount": 0,
+      "average": 6.454444707834538
+    },
+    "KinhTePhapLuat": {
+      "count": 7866,
+      "sumCents": 3759185,
+      "zeroCount": 0,
+      "average": 4.779030002542588
+    },
+    "LichSu": {
+      "count": 14381,
+      "sumCents": 8392200,
+      "zeroCount": 0,
+      "average": 5.835616438356165
+    },
+    "NgoaiNgu_N1": {
+      "count": 11294,
+      "sumCents": 5587400,
+      "zeroCount": 0,
+      "average": 4.94722861696476
+    },
+    "NgoaiNgu_N3": {
+      "count": 11,
+      "sumCents": 9375,
+      "zeroCount": 0,
+      "average": 8.522727272727273
+    },
+    "NgoaiNgu_N4": {
+      "count": 134,
+      "sumCents": 64900,
+      "zeroCount": 0,
+      "average": 4.843283582089552
+    },
+    "NgoaiNgu_N5": {
+      "count": 9,
+      "sumCents": 4825,
+      "zeroCount": 0,
+      "average": 5.361111111111111
+    },
+    "NgoaiNgu_N6": {
+      "count": 49,
+      "sumCents": 27725,
+      "zeroCount": 0,
+      "average": 5.658163265306122
+    },
+    "NgoaiNgu_N7": {
+      "count": 11,
+      "sumCents": 4900,
+      "zeroCount": 0,
+      "average": 4.454545454545454
+    },
+    "NguVan": {
+      "count": 35015,
+      "sumCents": 20157300,
+      "zeroCount": 2,
+      "average": 5.7567613879765815
+    },
+    "SinhHoc": {
+      "count": 1610,
+      "sumCents": 1024840,
+      "zeroCount": 0,
+      "average": 6.365465838509317
+    },
+    "TinHoc": {
+      "count": 904,
+      "sumCents": 594020,
+      "zeroCount": 0,
+      "average": 6.571017699115044
+    },
+    "Toan": {
+      "count": 34952,
+      "sumCents": 19831500,
+      "zeroCount": 0,
+      "average": 5.673924238956283
+    },
+    "VatLy": {
+      "count": 14053,
+      "sumCents": 7858255,
+      "zeroCount": 0,
+      "average": 5.591870063331673
+    }
+  }
+}

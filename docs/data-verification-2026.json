@@ -1,0 +1,126 @@
+{
+  "source": "https://github.com/sdgedfegw/du-lieu-diem-thi",
+  "download": "https://media.githubusercontent.com/media/sdgedfegw/du-lieu-diem-thi/main/du_lieu_diem_thi_2026.csv",
+  "downloadedAt": "2026-10-22T17:35:45.846Z",
+  "nationalRows": 1208863,
+  "daNangRows": 35526,
+  "uniqueCandidates": 35526,
+  "duplicateIds": 0,
+  "invalidValuesOrRows": 0,
+  "mismatchedYearOrPrefix": 0,
+  "columns": [
+    "SBD",
+    "Nam",
+    "Tinh",
+    "SBD_New",
+    "Toan",
+    "NguVan",
+    "VatLy",
+    "HoaHoc",
+    "SinhHoc",
+    "LichSu",
+    "DiaLy",
+    "KinhTePhapLuat",
+    "TinHoc",
+    "CongNgheCongNghiep",
+    "CongNgheNongNghiep",
+    "NgoaiNgu",
+    "MaMonNgoaiNgu",
+    "TongDiem",
+    "KhoiA",
+    "KhoiA1",
+    "KhoiB",
+    "KhoiC",
+    "KhoiD",
+    "KhoiA02",
+    "KhoiC01",
+    "KhoiD07"
+  ],
+  "subjects": {
+    "Toan": {
+      "count": 34952,
+      "missing": 574,
+      "min": 0.55,
+      "max": 10,
+      "avg": 5.673924238956878
+    },
+    "NguVan": {
+      "count": 35015,
+      "missing": 511,
+      "min": 0,
+      "max": 9.5,
+      "avg": 5.7567613879765815
+    },
+    "VatLy": {
+      "count": 14053,
+      "missing": 21473,
+      "min": 1.05,
+      "max": 10,
+      "avg": 5.591870063331652
+    },
+    "HoaHoc": {
+      "count": 8437,
+      "missing": 27089,
+      "min": 0.85,
+      "max": 10,
+      "avg": 6.454444707834321
+    },
+    "SinhHoc": {
+      "count": 1610,
+      "missing": 33916,
+      "min": 1.8,
+      "max": 9.75,
+      "avg": 6.365465838509361
+    },
+    "LichSu": {
+      "count": 14381,
+      "missing": 21145,
+      "min": 1.35,
+      "max": 10,
+      "avg": 5.835616438356245
+    },
+    "DiaLy": {
+      "count": 9680,
+      "missing": 25846,
+      "min": 0.85,
+      "max": 9.75,
+      "avg": 4.912128099173248
+    },
+    "KinhTePhapLuat": {
+      "count": 7866,
+      "missing": 27660,
+      "min": 0.95,
+      "max": 9.5,
+      "avg": 4.779030002542274
+    },
+    "TinHoc": {
+      "count": 904,
+      "missing": 34622,
+      "min": 2.25,
+      "max": 10,
+      "avg": 6.57101769911505
+    },
+    "CongNgheCongNghiep": {
+      "count": 90,
+      "missing": 35436,
+      "min": 3.85,
+      "max": 10,
+      "avg": 6.971666666666669
+    },
+    "CongNgheNongNghiep": {
+      "count": 2071,
+      "missing": 33455,
+      "min": 1.2,
+      "max": 9.75,
+      "avg": 6.429599227426398
+    },
+    "NgoaiNgu": {
+      "count": 11508,
+      "missing": 24018,
+      "min": 0.5,
+      "max": 10,
+      "avg": 4.952315780326729
+    }
+  },
+  "totalNonNullScores": 140567
+}
