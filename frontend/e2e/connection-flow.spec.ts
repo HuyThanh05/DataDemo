@@ -1,0 +1,51 @@
+import { expect, test } from '@playwright/test'
+
+test('saved MySQL source → metadata → Dataset → reload → browser back', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto('/connections')
+  await page.getByRole('button', { name: /MySQL local/ }).first().click()
+  await expect(page.locator('.columns-table tbody tr')).toHaveCount(8)
+  await expect(page.locator('.source-tables')).toContainText('exam_scores')
+  await page.getByRole('button', { name: 'Kiểm tra lại' }).click()
+  await expect(page.getByText(/Kết nối thành công. Tìm thấy/)).toBeVisible()
+  await page.getByRole('button', { name: 'Tạo dataset từ bảng này' }).click()
+  await expect(page).toHaveURL(/\/datasets\?connectionId=\d+&table=exam_scores$/)
+  await expect(page.getByText(/Đã chọn MySQL local → exam_scores/)).toBeVisible()
+  await expect(page.getByText(/Đang xem 100 dòng mẫu từ exam_scores/)).toBeVisible()
+  await expect(page.locator('.dataset-preview-panel .ant-table-tbody tr[data-row-key]')).toHaveCount(10)
+  await page.getByRole('button', { name: 'Làm mới xem trước' }).click()
+  await expect(page.getByText(/Đang xem 100 dòng mẫu từ exam_scores/)).toBeVisible()
+  await page.goBack()
+  await expect(page.getByRole('heading', { name: 'Kết nối database' })).toBeVisible()
+  await expect(page.locator('.columns-table tbody tr')).toHaveCount(8)
+  await page.goForward()
+  await page.reload()
+  await expect(page.getByText(/Đã chọn MySQL local → exam_scores/)).toBeVisible()
+  await expect(page.getByRole('navigation')).toHaveCount(1)
+  await page.goBack()
+  // A full page reload resets layout memory; saved records remain available.
+  await page.getByRole('button', { name: /MySQL local/ }).first().click()
+  await expect(page.locator('.columns-table tbody tr')).toHaveCount(8)
+  expect(errors).toEqual([])
+})
+
+test('wrong password displays a real MySQL error without saving', async ({ page }) => {
+  await page.goto('/connections')
+  await page.getByPlaceholder('Mật khẩu tài khoản nguồn').fill('intentionally-wrong-e2e-password')
+  await page.getByRole('button', { name: 'Kiểm tra kết nối', exact: true }).click()
+  await expect(page.getByText('MySQL từ chối truy cập. Kiểm tra tài khoản, mật khẩu và quyền đọc nguồn.')).toBeVisible()
+  await expect(page).toHaveURL(/\/connections$/)
+})
+
+test('mobile layout and source list search remain usable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/connections')
+  await page.getByRole('button', { name: /MySQL local/ }).first().waitFor()
+  await page.getByLabel('Tìm kết nối', { exact: true }).fill('no-such-source-e2e')
+  await expect(page.getByText('Không tìm thấy kết nối.')).toBeVisible()
+  await page.getByLabel('Tìm kết nối', { exact: true }).clear()
+  await page.getByRole('button', { name: /MySQL local/ }).first().click()
+  await expect(page.locator('.columns-table tbody tr')).toHaveCount(8)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})

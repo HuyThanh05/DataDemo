@@ -12,7 +12,7 @@ Tài khoản `datademo_reader` chỉ đọc `datademo_source`. Cần tài khoả
 4. Điền mật khẩu vừa đặt vào `datademo.app.password` (không phải mật khẩu reader). Nếu mật khẩu chứa dấu gạch chéo ngược, phải ghi thành hai dấu trong file properties.
 5. File này được bỏ qua bởi Git. Không gửi mật khẩu vào chat.
 
-Backend tự tạo bảng database_connections trong datademo_app khi truy cập danh sách hoặc lưu kết nối. Chỉ bảng của bước 7 được tạo.
+Sau bước kiến trúc 3, Flyway quản lý bảng database_connections và chạy migration khi backend khởi động. Repository không còn tự tạo bảng khi truy cập danh sách. MySQL và tài khoản ứng dụng phải sẵn sàng lúc khởi động backend. Xem docs/architecture-step-3.md.
 
 ## Chạy và thử
 

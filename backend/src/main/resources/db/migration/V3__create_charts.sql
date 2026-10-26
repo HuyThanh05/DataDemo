@@ -1,0 +1,9 @@
+CREATE TABLE charts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    dataset_id BIGINT NOT NULL,
+    configuration_json TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_chart_dataset FOREIGN KEY (dataset_id) REFERENCES datasets(id)
+);
