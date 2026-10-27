@@ -133,7 +133,7 @@ describe('existing workspace routes', () => {
     transport()
     mount('/connections')
     const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: /MySQL local/ }))
+    await user.click(await screen.findByRole('button', { name: /^MySQL local/ }))
     await screen.findByText('decimal(4,2)')
     await user.click(screen.getByRole('button', { name: 'Tạo dataset từ bảng này' }))
     expect(await screen.findByText('Đã chọn MySQL local → exam_scores')).toBeTruthy()

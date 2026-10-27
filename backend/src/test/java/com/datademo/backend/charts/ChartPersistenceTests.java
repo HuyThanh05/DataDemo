@@ -24,6 +24,11 @@ class ChartPersistenceTests {
         assertEquals(config,repository.get(created.id()).configuration());
         assertEquals(1,repository.list().size());
         assertEquals("Đã sửa",repository.save(created.id(),"Đã sửa",config).name());
+        for (String type : List.of("pie", "table")) {
+            var changed = new Request(config.datasetId(), type, config.dimension(), config.aggregation(), config.metricColumn(), config.sortDirection(), config.filters(), config.bucket());
+            repository.save(created.id(), "Dạng " + type, changed);
+            assertEquals(changed, new ChartRepository(jdbc).get(created.id()).configuration());
+        }
         assertThrows(Exception.class, () -> jdbc.update("DELETE FROM datasets WHERE id=2"));
         assertThrows(ApiFailure.class, () -> repository.save(null,"Invalid",new Request(999L,"bar","score","AVG","score","ASC",List.of())));
         assertEquals(1,repository.list().size());

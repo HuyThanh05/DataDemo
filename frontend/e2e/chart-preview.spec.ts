@@ -26,9 +26,9 @@ test('ECharts renders bar and line previews and clears the result when configura
     if (option === 'Giảm dần' || option === 'Đường') await input.press('ArrowDown')
     await input.press('Enter')
   }
-  await choose('Dimension (nhóm theo)', 'Môn học')
-  await choose('Cột metric', 'Điểm thi')
-  await choose('Sắp xếp dimension', 'Giảm dần')
+  await choose('Nhóm dữ liệu theo (Dimension)', 'Môn học')
+  await choose('Cột dùng để tính (Metric Column)', 'Điểm thi')
+  await choose('Thứ tự các nhóm (Sort Order)', 'Giảm dần')
   const response = page.waitForRequest('**/api/charts/preview')
   await page.getByRole('button', { name: 'Xem trước', exact: true }).click()
   expect((await response).postDataJSON().sortDirection).toBe('DESC')

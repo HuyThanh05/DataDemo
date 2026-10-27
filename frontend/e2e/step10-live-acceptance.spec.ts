@@ -55,7 +55,7 @@ test('step 10 real frontend/backend/MySQL acceptance with two demo charts',async
     await choose('chart-type',bucket?'Đường':'Cột')
     await choose('chart-dimension','Điểm thi')
     if(bucket) await choose('chart-grouping','Theo khoảng số')
-    await choose('chart-aggregation','COUNT — Đếm giá trị có dữ liệu')
+    await choose('chart-aggregation','Đếm giá trị có dữ liệu (COUNT)')
     await choose('chart-metric','Điểm thi')
     await page.getByLabel('Tên biểu đồ',{ exact:true }).fill(bucket?baseline.bucketName:baseline.rawName)
     const preview=page.waitForResponse(response=>response.url().endsWith('/api/charts/preview') && response.request().method()==='POST')

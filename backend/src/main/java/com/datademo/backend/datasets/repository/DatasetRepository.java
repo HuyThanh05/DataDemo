@@ -5,6 +5,7 @@ import com.datademo.backend.datasets.dto.DatasetDtos.*;
 import java.util.List;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -67,6 +68,24 @@ public class DatasetRepository {
                 jdbc.update("UPDATE dataset_columns SET display_name=? WHERE dataset_id=? AND column_name=?", entry.getValue(), id, entry.getKey());
             }
             return get(id);
+        } catch (DataAccessException e) { throw unavailable(); }
+    }
+
+    @Transactional
+    public void delete(long id) {
+        try {
+            if (jdbc.query("SELECT id FROM datasets WHERE id=? FOR UPDATE", (r, i) -> r.getLong(1), id).isEmpty())
+                throw new ApiFailure(HttpStatus.NOT_FOUND, "DATASET_NOT_FOUND", "Không tìm thấy dataset.");
+            int charts = jdbc.queryForObject("SELECT COUNT(*) FROM charts WHERE dataset_id=?", Integer.class, id);
+            if (charts > 0) throw new ApiFailure(HttpStatus.CONFLICT, "DATASET_IN_USE",
+                    "Không thể xóa dataset: đang có " + charts + " biểu đồ sử dụng. Hãy xóa các biểu đồ đó trước.");
+            int filters = jdbc.queryForObject("SELECT COUNT(*) FROM dashboard_filters WHERE dataset_id=?", Integer.class, id);
+            if (filters > 0) throw new ApiFailure(HttpStatus.CONFLICT, "DATASET_IN_USE",
+                    "Không thể xóa dataset: đang được dùng làm bộ lọc của " + filters + " dashboard. Hãy tắt bộ lọc chung trên các dashboard đó trước.");
+            jdbc.update("DELETE FROM dataset_columns WHERE dataset_id=?", id);
+            jdbc.update("DELETE FROM datasets WHERE id=?", id);
+        } catch (DataIntegrityViolationException e) {
+            throw new ApiFailure(HttpStatus.CONFLICT, "DATASET_IN_USE", "Dataset đang được sử dụng. Hãy tải lại biểu đồ và bộ lọc dashboard trước khi xóa.");
         } catch (DataAccessException e) { throw unavailable(); }
     }
 

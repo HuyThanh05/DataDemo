@@ -36,6 +36,19 @@ class DatasetServiceTests {
         assertTrue(columns.get(1).canAggregate());
         assertTrue(columns.get(1).nullable());
     }
+    @Test void salesCapabilitiesFollowSqlTypesAndNotBusinessColumnNames() {
+        when(connections.columns(19, "sales_records")).thenReturn(List.of(
+                new ConnectionDtos.Column("product_name", "varchar(100)", false),
+                new ConnectionDtos.Column("revenue", "decimal(15,2)", false),
+                new ConnectionDtos.Column("quantity", "int", false),
+                new ConnectionDtos.Column("sold_at", "date", false),
+                new ConnectionDtos.Column("revenue_text", "varchar(100)", true)));
+        service.create(new Create("Bán hàng", 19L, "sales_records", Map.of()));
+        @SuppressWarnings("unchecked") ArgumentCaptor<List<Column>> captor = ArgumentCaptor.forClass(List.class);
+        verify(repository).create(eq("Bán hàng"), eq(19L), eq("sales_records"), captor.capture());
+        assertEquals(List.of(false, true, true, false, false), captor.getValue().stream().map(Column::canAggregate).toList());
+        assertEquals(List.of("product_name", "revenue", "quantity", "sold_at", "revenue_text"), captor.getValue().stream().map(Column::name).toList());
+    }
     @Test void invalidNameAndUnknownColumnsNeverPersist() {
         assertThrows(ApiFailure.class, () -> service.create(new Create(" ", 7L, "scores", Map.of())));
         assertThrows(ApiFailure.class, () -> service.create(new Create("Demo", 7L, "scores", Map.of("injected", "Name"))));

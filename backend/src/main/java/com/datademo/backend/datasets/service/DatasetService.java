@@ -22,6 +22,7 @@ public class DatasetService {
 
     public List<Summary> list() { return repository.list(); }
     public Detail get(long id) { return repository.get(id); }
+    public void delete(long id) { repository.delete(id); }
 
     public Detail create(Create request) {
         if (request == null) throw invalid("Thiếu thông tin dataset.");

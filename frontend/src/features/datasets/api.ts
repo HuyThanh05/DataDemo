@@ -10,6 +10,7 @@ export const datasetKeys = {
 export const datasetsApi = {
   list: (signal?: AbortSignal) => request<DatasetSummary[]>('/datasets', { signal }),
   get: (id: number, signal?: AbortSignal) => request<DatasetDetail>(`/datasets/${id}`, { signal }),
+  remove: (id: number) => request<void>(`/datasets/${id}`, { method: 'DELETE' }),
   create: (input: DatasetCreate) => request<DatasetDetail>('/datasets', { body: input }),
   update: (id: number, body: { name: string; columnLabels: Record<string, string> }) => request<DatasetDetail>(`/datasets/${id}`, { method: 'PATCH', body }),
   previewSaved: (id: number, signal?: AbortSignal) => request<TablePreview>(`/datasets/${id}/preview`, { signal }),

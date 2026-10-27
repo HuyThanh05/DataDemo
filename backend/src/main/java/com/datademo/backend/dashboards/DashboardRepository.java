@@ -113,5 +113,14 @@ public class DashboardRepository {
             return layout(dashboardId);
         } catch(DataAccessException e) { throw unavailable(); }
     }
+    @Transactional public void delete(long id) {
+        lock(id);
+        try {
+            jdbc.update("DELETE FROM dashboard_chart_layouts WHERE dashboard_id=?",id);
+            jdbc.update("DELETE FROM dashboard_filters WHERE dashboard_id=?",id);
+            jdbc.update("DELETE FROM dashboard_charts WHERE dashboard_id=?",id);
+            jdbc.update("DELETE FROM dashboards WHERE id=?",id);
+        } catch (DataAccessException e) { throw unavailable(); }
+    }
     private ApiFailure unavailable() { return new ApiFailure(HttpStatus.SERVICE_UNAVAILABLE,"APP_DATABASE_UNAVAILABLE","Không đọc hoặc lưu được dashboard trong datademo_app."); }
 }

@@ -42,6 +42,7 @@ public class DashboardService {
     }
     private ApiFailure invalidLayout() { return new ApiFailure(HttpStatus.BAD_REQUEST,"INVALID_LAYOUT","Bố cục không hợp lệ: biểu đồ không được trùng, chồng lấn hoặc vượt giới hạn lưới 12 cột."); }
     public View get(long id) { return repository.get(id); }
+    public void delete(long id) { repository.delete(id); }
     public View save(Long id, Save input) {
         if (input == null || input.name() == null || input.name().isBlank() || input.name().trim().length() > 100)
             throw new ApiFailure(HttpStatus.BAD_REQUEST,"INVALID_DASHBOARD","Tên dashboard phải có từ 1 đến 100 ký tự.");

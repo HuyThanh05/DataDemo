@@ -15,6 +15,7 @@ public class DashboardController {
     public DashboardController(DashboardService service) { this.service = service; }
     @GetMapping public List<View> list() { return service.list(); }
     @GetMapping("/{id}") public View get(@PathVariable long id) { return service.get(id); }
+    @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable long id) { service.delete(id); return ResponseEntity.noContent().build(); }
     @PostMapping public ResponseEntity<View> create(@RequestBody Save input) { return ResponseEntity.status(201).body(service.save(null,input)); }
     @PatchMapping("/{id}") public View update(@PathVariable long id,@RequestBody Save input) { return service.save(id,input); }
     @GetMapping("/{id}/charts") public List<com.datademo.backend.charts.ChartDtos.Saved> charts(@PathVariable long id) { return service.charts(id); }

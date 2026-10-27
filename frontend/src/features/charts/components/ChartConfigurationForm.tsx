@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { DatasetDetail } from '../../datasets/types'
 import type { Aggregation, ChartType, ChartFilter, ChartConfiguration, SavedChart } from '../types'
 import { chartsApi } from '../api'
+import { chartTypeLabels, chartTypeOptions } from '../chartTypes'
 import ChartPreview from './ChartPreview'
 import ChartFilters from './ChartFilters'
 import { filterError, filterOperatorLabels, needsFilterValue, numericColumn } from '../filters'
@@ -60,12 +61,12 @@ export default function ChartConfigurationForm({ dataset, saved, onSaved }: { da
     <Form layout="vertical" disabled={saving} onValuesChange={() => setNotice('')}>
       <Form.Item label="Tên biểu đồ" htmlFor="chart-name"><Input id="chart-name" value={name} maxLength={100} placeholder="Nhập tên biểu đồ" onChange={e => { setName(e.target.value); setNotice('') }} /></Form.Item>
       <div className="chart-configuration-fields">
-        <Form.Item label="Loại biểu đồ" htmlFor="chart-type"><Select id="chart-type" value={chartType} onChange={setChartType} options={[{ value: 'bar', label: 'Cột' }, { value: 'line', label: 'Đường' }]} /></Form.Item>
-        <Form.Item label="Dimension (nhóm theo)" htmlFor="chart-dimension" required><Select id="chart-dimension" placeholder="Chọn cột nhóm" value={dimension?.name} onChange={value => { setDimensionName(value); setGrouping('value') }} showSearch optionFilterProp="label" options={options(dimensions)} /></Form.Item>
-        <Form.Item label="Cách nhóm dimension" htmlFor="chart-grouping"><Select id="chart-grouping" value={grouping} onChange={setGrouping} options={[{ value: 'value', label: 'Theo giá trị' }, { value: 'interval', label: 'Theo khoảng số', disabled: !dimension || !numericColumn(dimension) }]} /></Form.Item>
-        <Form.Item label="Phép tổng hợp" htmlFor="chart-aggregation"><Select id="chart-aggregation" value={aggregation} onChange={changeAggregation} options={[{ value: 'AVG', label: 'AVG — Trung bình' }, { value: 'COUNT', label: 'COUNT — Đếm giá trị có dữ liệu' }]} /></Form.Item>
-        <Form.Item label="Cột metric" htmlFor="chart-metric" required><Select id="chart-metric" placeholder="Chọn cột tổng hợp" value={metric?.name} onChange={setMetricName} showSearch optionFilterProp="label" options={options(metrics)} /></Form.Item>
-        <Form.Item label="Sắp xếp dimension" htmlFor="chart-sort"><Select id="chart-sort" value={sortDirection} onChange={setSortDirection} options={[{ value: 'ASC', label: 'Tăng dần' }, { value: 'DESC', label: 'Giảm dần' }]} /></Form.Item>
+        <Form.Item label="Loại biểu đồ" htmlFor="chart-type"><Select id="chart-type" value={chartType} onChange={setChartType} options={chartTypeOptions} /></Form.Item>
+        <Form.Item label="Nhóm dữ liệu theo (Dimension)" htmlFor="chart-dimension" required><Select id="chart-dimension" placeholder="Chọn cột để chia nhóm" value={dimension?.name} onChange={value => { setDimensionName(value); setGrouping('value') }} showSearch optionFilterProp="label" options={options(dimensions)} /></Form.Item>
+        <Form.Item label="Cách chia nhóm (Grouping)" htmlFor="chart-grouping"><Select id="chart-grouping" value={grouping} onChange={setGrouping} options={[{ value: 'value', label: 'Theo từng giá trị' }, { value: 'interval', label: 'Theo khoảng số', disabled: !dimension || !numericColumn(dimension) }]} /></Form.Item>
+        <Form.Item label="Cách tính cho mỗi nhóm (Aggregation)" htmlFor="chart-aggregation"><Select id="chart-aggregation" value={aggregation} onChange={changeAggregation} options={[{ value: 'AVG', label: 'Tính trung bình (AVG)' }, { value: 'COUNT', label: 'Đếm giá trị có dữ liệu (COUNT)' }]} /></Form.Item>
+        <Form.Item label="Cột dùng để tính (Metric Column)" htmlFor="chart-metric" required><Select id="chart-metric" placeholder="Chọn cột dùng để tính" value={metric?.name} onChange={setMetricName} showSearch optionFilterProp="label" options={options(metrics)} /></Form.Item>
+        <Form.Item label="Thứ tự các nhóm (Sort Order)" htmlFor="chart-sort"><Select id="chart-sort" value={sortDirection} onChange={setSortDirection} options={[{ value: 'ASC', label: 'Tăng dần' }, { value: 'DESC', label: 'Giảm dần' }]} /></Form.Item>
       </div>
       {grouping === 'interval' && <>
         <div className="chart-configuration-fields">
@@ -79,13 +80,13 @@ export default function ChartConfigurationForm({ dataset, saved, onSaved }: { da
       <ChartFilters columns={dataset.columns} filters={filters} onChange={setFilters} />
     </Form>
     {!dimensions.length && <Alert type="warning" showIcon title="Dataset không có cột được phép nhóm." className="section-alert" />}
-    {aggregation === 'AVG' && !metrics.length && <Alert type="warning" showIcon title="Dataset không có cột số để tính trung bình. Bạn có thể chọn COUNT." className="section-alert" />}
-    <p className="footnote">AVG tính trung bình trên cột số. COUNT(cột) đếm giá trị khác NULL; điểm 0 vẫn được tính. Hai phép tổng hợp đều bỏ qua NULL.</p>
+    {aggregation === 'AVG' && !metrics.length && <Alert type="warning" showIcon title="Dataset không có cột số để tính trung bình. Bạn có thể chọn Đếm giá trị có dữ liệu (COUNT)." className="section-alert" />}
+    <p className="footnote">Dữ liệu được chia thành nhóm theo cột đã chọn, rồi tính riêng cho từng nhóm. Tính trung bình (AVG) áp dụng cho cột số. Đếm giá trị có dữ liệu (COUNT) đếm các giá trị khác NULL, kể cả 0. Cả hai cách tính đều bỏ qua NULL.</p>
     {dimension && metric && filtersValid && bucketValid
-      ? <Alert type="success" showIcon title="Đã chọn đủ cấu hình cơ bản." description={`Biểu đồ ${chartType === 'bar' ? 'cột' : 'đường'} · Nhóm theo ${dimension.displayName} · ${aggregation}(${metric.displayName})`} />
-      : <Alert type="info" showIcon title={dimension && metric ? 'Hãy hoàn tất hoặc xóa bộ lọc chưa hợp lệ.' : 'Chọn dimension và cột metric để hoàn tất cấu hình cơ bản.'} />}
+      ? <Alert type="success" showIcon title="Đã chọn đủ cấu hình cơ bản." description={`${chartType === 'table' ? 'Bảng' : `Biểu đồ ${chartTypeLabels[chartType].toLowerCase()}`} · Nhóm theo ${dimension.displayName} · ${aggregation}(${metric.displayName})`} />
+      : <Alert type="info" showIcon title={dimension && metric ? 'Hãy hoàn tất hoặc xóa bộ lọc chưa hợp lệ.' : 'Chọn cột chia nhóm và cột dùng để tính để hoàn tất cấu hình cơ bản.'} />}
     {filters.length > 0 && filtersValid && <p className="footnote">Lọc: {filters.map(filter => `${dataset.columns.find(column => column.name === filter.column)!.displayName} ${filterOperatorLabels[filter.operator]}${needsFilterValue(filter.operator) ? ` “${filter.value}”` : ''}`).join(' VÀ ')}</p>}
-    <p className="footnote">Dimension được sắp xếp theo kiểu dữ liệu gốc trong MySQL. Bấm Lưu biểu đồ để giữ cấu hình; dữ liệu được truy vấn lại khi xem trước.</p>
+    <p className="footnote">Các nhóm được sắp xếp theo giá trị của cột chia nhóm, dùng kiểu dữ liệu gốc trong MySQL. Bấm Lưu biểu đồ để giữ cấu hình; dữ liệu được truy vấn lại khi xem trước.</p>
     <Button type="primary" loading={saving} disabled={!configuration || !name.trim()} onClick={() => { void save() }}>Lưu biểu đồ</Button>
     <ChartPreview key={JSON.stringify(configuration)} configuration={configuration} dimensionLabel={dimension?.displayName ?? ''} metricLabel={`${aggregation}(${metric?.displayName ?? ''})`} />
   </section>

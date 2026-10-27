@@ -28,6 +28,14 @@ export default function ConnectionsPage() {
     void client.invalidateQueries({ queryKey: connectionKeys.list })
     select(connection)
   }
+  async function remove(connection: ConnectionView) {
+    await connectionsApi.remove(connection.id)
+    if (selected?.id === connection.id) { setSelectedConnection(null); setRequestedTable(''); setRetestResult(null) }
+    await client.cancelQueries({ queryKey: ['connection', connection.id] })
+    client.removeQueries({ queryKey: ['connection', connection.id] })
+    client.setQueryData<ConnectionView[]>(connectionKeys.list, old => (old ?? []).filter(item => item.id !== connection.id))
+    await client.invalidateQueries({ queryKey: connectionKeys.list })
+  }
   async function retest() {
     if (!selected || retesting) return
     const id = selected.id
@@ -45,7 +53,7 @@ export default function ConnectionsPage() {
   return <>
     <header className="page-heading"><h1>Kết nối database</h1><p>Nhập thông tin, kiểm tra kết nối và xem bảng/cột.</p></header>
     <div className="connection-grid"><div className="left-stack">
-      <ConnectionList connections={list.data ?? []} search={search} selectedId={selected?.id} loading={list.isFetching} error={list.error?.message} onRefresh={() => { void list.refetch() }} onSelect={select} />
+      <ConnectionList connections={list.data ?? []} search={search} selectedId={selected?.id} loading={list.isFetching} error={list.error?.message} onRefresh={() => { void list.refetch() }} onSelect={select} onDelete={remove} />
       <ConnectionForm onSaved={saved} />
     </div>
       <SourceMetadata connection={selected} tables={tables.data ?? []} table={table} columns={columns.data ?? []} loading={tables.isFetching || columns.isFetching} retesting={retesting} error={error} success={result?.ok ? result.message : undefined} onSelectTable={setRequestedTable} onRetest={() => { void retest() }} onCreateDataset={() => { if (selected && table) navigate(`/datasets?${new URLSearchParams({ connectionId: String(selected.id), table })}`) }} />

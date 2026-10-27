@@ -9,6 +9,46 @@ import static org.junit.jupiter.api.Assertions.*;
 import static com.datademo.backend.charts.ChartDtos.*;
 
 class ChartQueryCompilerTests {
+    @Test void aggregatesSalesColumnsAndUsesTheRequestedMonetaryBuckets() throws Exception {
+        var sales = new Detail(903, "Bán hàng", 19, "sales_records", List.of(
+                new Column(1, "product_name", "Sản phẩm", "varchar(100)", false, true, false, true),
+                new Column(2, "revenue", "Doanh thu", "decimal(15,2)", true, true, true, true),
+                new Column(3, "quantity", "Số lượng", "int", false, true, true, true)));
+        var filters = List.of(new Filter("quantity", "GTE", "1"));
+        var average = compiler.compile(new Request(903L, "bar", "product_name", "AVG", "revenue", "ASC", filters), sales);
+        var bucket = compiler.compile(new Request(903L, "bar", "revenue", "COUNT", "revenue", "ASC", filters,
+                new Bucket(java.math.BigDecimal.ZERO, new java.math.BigDecimal("1000000"), new java.math.BigDecimal("100000"))), sales);
+        try (var c = DriverManager.getConnection("jdbc:h2:mem:sales-audit;MODE=MySQL"); var s = c.createStatement()) {
+            s.execute("CREATE TABLE sales_records(product_name VARCHAR(100),revenue DECIMAL(15,2),quantity INT)");
+            s.execute("INSERT INTO sales_records VALUES('Áo',100000,1),('Áo',200000,2),('Quần',300000,1),('Quần',NULL,0)");
+            try (var p = c.prepareStatement(average.sql())) {
+                for (int i = 0; i < average.parameters().size(); i++) p.setObject(i + 1, average.parameters().get(i));
+                var totals = new HashMap<String, java.math.BigDecimal>();
+                try (var r = p.executeQuery()) { while (r.next()) totals.put(r.getString(1), r.getBigDecimal(2)); }
+                assertEquals(0, totals.get("Áo").compareTo(new java.math.BigDecimal("150000")));
+                assertEquals(0, totals.get("Quần").compareTo(new java.math.BigDecimal("300000")));
+            }
+            try (var p = c.prepareStatement(bucket.sql())) {
+                for (int i = 0; i < bucket.parameters().size(); i++) p.setObject(i + 1, bucket.parameters().get(i));
+                try (var r = p.executeQuery()) {
+                    for (int value : List.of(100000, 200000, 300000)) { assertTrue(r.next()); assertEquals(value, r.getInt(1)); assertEquals(1, r.getInt(2)); }
+                    assertFalse(r.next());
+                }
+            }
+        }
+    }
+
+    @Test void pieAndTableUseTheSameValidatedAggregationQuery() {
+        var base = request("COUNT", "score", "DESC", List.of(new Filter("category", "EQ", "Toán")));
+        var expected = compiler.compile(base, dataset);
+        for (String type : List.of("bar", "line", "pie", "table")) {
+            var input = new Request(base.datasetId(), type, base.dimension(), base.aggregation(), base.metricColumn(), base.sortDirection(), base.filters());
+            assertEquals(expected, compiler.compile(input, dataset));
+        }
+        assertThrows(ApiFailure.class, () -> compiler.compile(new Request(1L, "scatter", "category", "COUNT", "score", "ASC", List.of()), dataset));
+        assertThrows(ApiFailure.class, () -> compiler.compile(new Request(1L, "pie", "category", "AVG", "category", "ASC", List.of()), dataset));
+    }
+
     @Test void bucketsIncludeTenInLastIntervalAndExcludeNullAndOutOfRange() throws Exception {
         var request = new Request(1L,"line","score","COUNT","score","ASC",List.of(),
                 new Bucket(new java.math.BigDecimal("0"),new java.math.BigDecimal("10"),java.math.BigDecimal.ONE));

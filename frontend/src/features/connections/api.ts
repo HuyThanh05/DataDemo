@@ -9,6 +9,7 @@ export const connectionKeys = {
 
 export const connectionsApi = {
   list: (signal?: AbortSignal) => request<ConnectionView[]>('/connections', { signal }),
+  remove: (id: number) => request<void>(`/connections/${id}`, { method: 'DELETE' }),
   tables: (id: number, signal?: AbortSignal) => request<string[]>(`/connections/${id}/tables`, { signal }),
   columns: (id: number, table: string, signal?: AbortSignal) =>
     request<ColumnInfo[]>(`/connections/${id}/columns?table=${encodeURIComponent(table)}`, { signal }),

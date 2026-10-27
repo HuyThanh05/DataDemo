@@ -26,6 +26,7 @@ export async function request<T>(path: string, options: { body?: unknown; signal
     if (options.signal?.aborted) throw error
     throw new ApiError('Không gọi được backend. Kiểm tra Spring Boot tại cổng 8080.', 0)
   }
+  if (response.status === 204) return undefined as T
   const value = await response.json().catch(() => null)
   if (!response.ok) {
     throw new ApiError(

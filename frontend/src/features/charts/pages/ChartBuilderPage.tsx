@@ -41,8 +41,8 @@ export default function ChartBuilderPage() {
         { title: 'Tên hiển thị', dataIndex: 'displayName' },
         { title: 'Tên cột gốc', dataIndex: 'name' },
         { title: 'Kiểu dữ liệu', dataIndex: 'dataType' },
-        { title: 'Nhóm theo', dataIndex: 'canGroup', render: value => value ? 'Có' : 'Không' },
-        { title: 'Tổng hợp số (AVG)', dataIndex: 'canAggregate', render: value => value ? 'Có' : 'Không' },
+        { title: 'Dùng để chia nhóm', dataIndex: 'canGroup', render: value => value ? 'Có' : 'Không' },
+        { title: 'Tính trung bình (AVG)', dataIndex: 'canAggregate', render: value => value ? 'Có' : 'Không' },
         { title: 'Lọc', dataIndex: 'canFilter', render: value => value ? 'Có' : 'Không' },
       ]} />
     </section>

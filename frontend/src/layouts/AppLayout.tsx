@@ -8,7 +8,7 @@ import './app.css'
 export type WorkspaceContext = {
   search: string
   selectedConnection: ConnectionView | null
-  setSelectedConnection: (connection: ConnectionView) => void
+  setSelectedConnection: (connection: ConnectionView | null) => void
 }
 
 export default function AppLayout() {

@@ -16,7 +16,7 @@ public class ChartQueryCompiler {
     }
     Plan compile(Request input, Detail dataset,int maxFilters) {
         if (input == null || input.datasetId() == null || input.datasetId() != dataset.id()
-                || !Set.of("bar", "line").contains(Objects.toString(input.chartType(), ""))
+                || !Set.of("bar", "line", "pie", "table").contains(Objects.toString(input.chartType(), ""))
                 || !Set.of("AVG", "COUNT").contains(Objects.toString(input.aggregation(), ""))
                 || !Set.of("ASC", "DESC").contains(Objects.toString(input.sortDirection(), ""))) throw invalid();
         Column dimension = column(dataset, input.dimension());

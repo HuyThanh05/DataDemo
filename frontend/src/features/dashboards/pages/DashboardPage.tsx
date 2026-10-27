@@ -5,14 +5,26 @@ import { useSearchParams } from 'react-router-dom'
 import { dashboardKeys, dashboardsApi } from '../api'
 import type { Dashboard } from '../api'
 import DashboardCharts from '../components/DashboardCharts'
+import DeleteSavedButton from '../../../shared/components/DeleteSavedButton'
 
 export default function DashboardPage() {
+  const client = useQueryClient()
   const [params, setParams] = useSearchParams()
   const [revision, setRevision] = useState(0)
   const rawId = params.get('dashboardId')
   const id = rawId && /^\d+$/.test(rawId) && Number.isSafeInteger(Number(rawId)) && Number(rawId) > 0 ? Number(rawId) : undefined
   const list = useQuery({ queryKey: dashboardKeys.list, queryFn: ({ signal }) => dashboardsApi.list(signal) })
   const detail = useQuery({ queryKey: dashboardKeys.detail(id), queryFn: ({ signal }) => dashboardsApi.get(id!,signal), enabled: id !== undefined })
+  async function remove(dashboard: Dashboard) {
+    await dashboardsApi.remove(dashboard.id)
+    if (id === dashboard.id) { setParams({}); setRevision(value => value + 1) }
+    for (const key of [dashboardKeys.detail(dashboard.id), dashboardKeys.charts(dashboard.id), dashboardKeys.layout(dashboard.id), dashboardKeys.filter(dashboard.id), ['dashboard-chart-preview', dashboard.id]]) {
+      await client.cancelQueries({ queryKey: key })
+      client.removeQueries({ queryKey: key })
+    }
+    client.setQueryData<Dashboard[]>(dashboardKeys.list, old => (old ?? []).filter(item => item.id !== dashboard.id))
+    await client.invalidateQueries({ queryKey: dashboardKeys.list })
+  }
   return <>
     <header className="page-heading dataset-heading"><div><h1>Dashboard</h1><p>Tạo và quản lý màn hình phân tích của bạn.</p></div><Button onClick={() => { setParams({});setRevision(value => value + 1) }}>Dashboard mới</Button></header>
     {rawId !== null && id === undefined ? <Alert type="error" title="Mã dashboard không hợp lệ." />
@@ -24,7 +36,7 @@ export default function DashboardPage() {
       {list.error && <Alert type="error" showIcon title={list.error.message} />}
       <Table<Dashboard> rowKey="id" size="small" loading={list.isFetching} dataSource={list.data ?? []} pagination={{ pageSize: 5, hideOnSinglePage: true }} locale={{ emptyText: 'Chưa có dashboard đã lưu.' }} columns={[
         { title: 'Tên dashboard', dataIndex: 'name' },
-        { title: 'Thao tác', render: (_, dashboard) => <Button onClick={() => { setParams({ dashboardId: String(dashboard.id) });setRevision(value => value + 1) }}>Mở dashboard</Button> },
+        { title: 'Thao tác', render: (_, dashboard) => <div className="form-actions"><Button onClick={() => { setParams({ dashboardId: String(dashboard.id) });setRevision(value => value + 1) }}>Mở dashboard</Button><DeleteSavedButton kind="dashboard" name={dashboard.name} description="Dashboard, bố cục và bộ lọc chung sẽ bị xóa. Các biểu đồ, dataset và dữ liệu nguồn được giữ nguyên." onDelete={() => remove(dashboard)} /></div> },
       ]} />
     </section>
   </>

@@ -9,6 +9,7 @@ export const dashboardKeys = { list: ['dashboards'] as const, detail: (id: numbe
 export const dashboardsApi = {
   list: (signal?: AbortSignal) => request<Dashboard[]>('/dashboards', { signal }),
   get: (id: number, signal?: AbortSignal) => request<Dashboard>(`/dashboards/${id}`, { signal }),
+  remove: (id: number) => request<void>(`/dashboards/${id}`, { method: 'DELETE' }),
   save: (id: number | undefined, name: string) => request<Dashboard>(id ? `/dashboards/${id}` : '/dashboards', { method: id ? 'PATCH' : 'POST', body: { name } }),
   charts: (id: number, signal?: AbortSignal) => request<SavedChart[]>(`/dashboards/${id}/charts`, { signal }),
   addChart: (id: number, chartId: number) => request<SavedChart[]>(`/dashboards/${id}/charts`, { body: { chartId } }),

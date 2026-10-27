@@ -7,10 +7,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class ConnectionRepository {
@@ -75,6 +77,19 @@ public class ConnectionRepository {
         } catch (DataAccessException e) {
             throw unavailable();
         }
+    }
+
+    @Transactional
+    public void delete(long id) {
+        try {
+            if (jdbc.query("SELECT id FROM database_connections WHERE id=? FOR UPDATE", (r, i) -> r.getLong(1), id).isEmpty()) throw missing();
+            int count = jdbc.queryForObject("SELECT COUNT(*) FROM datasets WHERE connection_id=?", Integer.class, id);
+            if (count > 0) throw new ApiFailure(HttpStatus.CONFLICT, "CONNECTION_IN_USE",
+                    "Không thể xóa kết nối: đang có " + count + " dataset sử dụng. Hãy xóa các dataset đó trước.");
+            jdbc.update("DELETE FROM database_connections WHERE id=?", id);
+        } catch (DataIntegrityViolationException e) {
+            throw new ApiFailure(HttpStatus.CONFLICT, "CONNECTION_IN_USE", "Kết nối đang được sử dụng. Hãy tải lại danh sách dataset trước khi xóa.");
+        } catch (DataAccessException e) { throw unavailable(); }
     }
 
     private View view(ResultSet row) throws SQLException {

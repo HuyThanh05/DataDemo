@@ -17,6 +17,7 @@ public class ChartService {
     }
     public java.util.List<Saved> list() { return repository.list(); }
     public Saved get(long id) { return repository.get(id); }
+    public void delete(long id) { repository.delete(id); }
     public Saved save(Long id, Save input) {
         if (input == null || input.name() == null || input.name().isBlank() || input.name().trim().length() > 100) throw ChartQueryCompiler.invalid();
         validate(input.configuration());

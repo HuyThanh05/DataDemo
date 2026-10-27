@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { request } from './http'
 
 describe('HTTP client', () => {
+  it('accepts successful DELETE responses without a JSON body', async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetch)
+    await expect(request<void>('/datasets/8', { method: 'DELETE' })).resolves.toBeUndefined()
+    expect(fetch).toHaveBeenCalledWith('/api/datasets/8', expect.objectContaining({ method: 'DELETE' }))
+  })
   it('preserves backend error status, code and safe message', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'SOURCE_ACCESS_DENIED', message: 'Access denied' }), { status: 502 })))
     await expect(request('/connections')).rejects.toMatchObject({ status: 502, code: 'SOURCE_ACCESS_DENIED', message: 'Access denied' })

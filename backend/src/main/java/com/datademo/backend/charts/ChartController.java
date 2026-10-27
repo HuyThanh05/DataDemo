@@ -13,6 +13,7 @@ public class ChartController {
     public ChartController(ChartService service) { this.service = service; }
     @GetMapping public java.util.List<ChartDtos.Saved> list() { return service.list(); }
     @GetMapping("/{id}") public ChartDtos.Saved get(@PathVariable long id) { return service.get(id); }
+    @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable long id) { service.delete(id); return ResponseEntity.noContent().build(); }
     @PostMapping public ResponseEntity<ChartDtos.Saved> create(@RequestBody ChartDtos.Save input) { return ResponseEntity.status(201).body(service.save(null,input)); }
     @PatchMapping("/{id}") public ChartDtos.Saved update(@PathVariable long id,@RequestBody ChartDtos.Save input) { return service.save(id,input); }
     @GetMapping("/{id}/preview") public ChartDtos.Preview savedPreview(@PathVariable long id) { return service.preview(service.get(id).configuration()); }

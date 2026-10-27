@@ -19,6 +19,7 @@ public class DatasetController {
     public DatasetController(DatasetService service) { this.service = service; }
     @GetMapping public List<Summary> list() { return service.list(); }
     @GetMapping("/{id}") public Detail get(@PathVariable long id) { return service.get(id); }
+    @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable long id) { service.delete(id); return ResponseEntity.noContent().build(); }
     @PostMapping public ResponseEntity<Detail> create(@RequestBody Create request) { return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request)); }
     @PatchMapping("/{id}") public Detail update(@PathVariable long id, @RequestBody Patch request) { return service.update(id, request); }
     @GetMapping("/{id}/preview") public TablePreview preview(@PathVariable long id) { return service.preview(id); }

@@ -15,6 +15,7 @@ public class ConnectionService {
     public ConnectionService(ConnectionRepository repository,SourceDatabaseClient source,PasswordCipher cipher,ConnectionValidator validator){this.repository=repository;this.source=source;this.cipher=cipher;this.validator=validator;}
     public List<View> list(){return repository.list();}
     public View get(long id){return repository.get(id);}
+    public void delete(long id){repository.delete(id);}
     public TestResult test(Input input){return source.test(validator.validate(input));}
     public TestResult test(long id){return test(storedInput(id));}
     public List<String> tables(long id){return source.tables(storedInput(id));}
