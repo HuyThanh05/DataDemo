@@ -1,4 +1,4 @@
-import { render as renderView, screen, within, waitFor } from '@testing-library/react'
+import { render as renderView, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createQueryClient } from '../../../app/queryClient'
@@ -43,8 +43,8 @@ describe('chart configuration', () => {
     expect((screen.getByLabelText('Giá trị cuối') as HTMLInputElement).value).toBe('10')
     await choose('Cách chia nhóm (Grouping)', 'Theo từng giá trị')
     const metric = await popup('Cột dùng để tính (Metric Column)')
-    expect(within(metric).queryByText('Sản phẩm', { selector: '.ant-select-item-option-content' })).toBeNull()
-    expect(within(metric).queryByText('Ngày bán', { selector: '.ant-select-item-option-content' })).toBeNull()
+    expect(within(metric).queryByText('Sản phẩm', { selector: '.ant-select-item-option-content' })).toBeTruthy()
+    expect(within(metric).queryByText('Ngày bán', { selector: '.ant-select-item-option-content' })).toBeTruthy()
     expect(within(metric).getByText('Số lượng', { selector: '.ant-select-item-option-content' })).toBeTruthy()
     await user.click(within(metric).getByText('Doanh thu', { selector: '.ant-select-item-option-content' }))
     await choose('Cách tính cho mỗi nhóm (Aggregation)', 'Đếm giá trị có dữ liệu (COUNT)')
@@ -52,15 +52,17 @@ describe('chart configuration', () => {
     expect(screen.getByText('Biểu đồ cột · Nhóm theo Doanh thu · COUNT(Sản phẩm)')).toBeTruthy()
   }, 15000)
 
-  it.each(['pie', 'table'] as const)('restores and saves the %s chart type', async chartType => {
-    const configuration = { datasetId: 8, chartType, dimension: 'category', aggregation: 'COUNT' as const, metricColumn: 'value', sortDirection: 'ASC' as const, filters: [] }
+  it.each(['SUM', 'MIN', 'MAX'] as const)('restores and saves the %s aggregation', async aggregation => {
+    const chartType = 'table' as const
+    const configuration = { datasetId: 8, chartType, dimension: 'category', aggregation, metricColumn: 'value', sortDirection: 'ASC' as const, filters: [] }
     const fetch = vi.fn(async (_path: string, options?: RequestInit) => new Response(JSON.stringify({ id: 50, ...JSON.parse(String(options?.body)) })))
     vi.stubGlobal('fetch', fetch)
     render(<ChartConfigurationForm dataset={dataset} saved={{ id: 50, name: 'Dạng mới', configuration }} />)
-    expect(screen.getByLabelText('Loại biểu đồ').closest('.ant-select')?.textContent).toContain(chartType === 'pie' ? 'Tròn (Pie)' : 'Bảng (Table)')
+    expect(screen.getByLabelText('Loại biểu đồ').closest('.ant-select')?.textContent).toContain('Bảng (Table)')
     await userEvent.setup().click(screen.getByRole('button', { name: 'Lưu biểu đồ' }))
     expect(await screen.findByText('Đã lưu biểu đồ.')).toBeTruthy()
     expect(JSON.parse(String(fetch.mock.calls[0][1]?.body)).configuration.chartType).toBe(chartType)
+    expect(JSON.parse(String(fetch.mock.calls[0][1]?.body)).configuration.aggregation).toBe(aggregation)
   }, 15000)
 
   it('restores saved interval configuration and updates the same chart', async () => {
@@ -101,34 +103,34 @@ describe('chart configuration', () => {
     await user.click(screen.getByRole('button', { name: 'Xóa bộ lọc 1' }))
     expect(screen.getByText('Chưa có bộ lọc; sử dụng toàn bộ dữ liệu.')).toBeTruthy()
   }, 15000)
-  it('restricts AVG to numeric columns, supports COUNT on text and clears an incompatible metric', async () => {
-    render(<ChartConfigurationForm dataset={dataset} />)
-    const user = userEvent.setup()
-    async function choose(label: string, option: string) {
-      const input = screen.getByLabelText(label)
-      await user.click(input)
-      const popup = document.getElementById(input.getAttribute('aria-controls')!)!.closest('.ant-select-dropdown') as HTMLElement
-      await user.click(within(popup).getByText(option, { selector: '.ant-select-item-option-content' }))
+  it('uses column policies and defaults instead of granting numeric IDs every aggregation', async () => {
+    const policyDataset: DatasetDetail = {...dataset,columns:[
+      {...dataset.columns[0], dataType:'int', role:'IDENTIFIER',allowedAggregations:['COUNT'],defaultAggregation:'COUNT'},
+      {...dataset.columns[1],role:'MEASURE',allowedAggregations:['SUM','AVG'],defaultAggregation:'SUM'},
+    ]}
+    render(<ChartConfigurationForm dataset={policyDataset} />)
+    const user=userEvent.setup()
+    async function popup(label:string) {
+      const input=screen.getByLabelText(label); await user.click(input)
+      return document.getElementById(input.getAttribute('aria-controls')!)!.closest('.ant-select-dropdown') as HTMLElement
     }
-    await choose('Nhóm dữ liệu theo (Dimension)', 'Nhóm')
-    await user.click(screen.getByLabelText('Cột dùng để tính (Metric Column)'))
-    await waitFor(() => expect(document.getElementById('chart-metric_list')).toBeTruthy())
-    const dropdown = document.getElementById('chart-metric_list')!.closest('.ant-select-dropdown') as HTMLElement
-    expect(within(dropdown).queryByText('Nhóm', { selector: '.ant-select-item-option-content' })).toBeNull()
-    await user.click(within(dropdown).getByText('Giá trị', { selector: '.ant-select-item-option-content' }))
-    expect(await screen.findByText('Biểu đồ cột · Nhóm theo Nhóm · AVG(Giá trị)')).toBeTruthy()
-    await choose('Loại biểu đồ', 'Đường')
-    await choose('Cách tính cho mỗi nhóm (Aggregation)', 'Đếm giá trị có dữ liệu (COUNT)')
-    await choose('Cột dùng để tính (Metric Column)', 'Nhóm')
-    expect(await screen.findByText('Biểu đồ đường · Nhóm theo Nhóm · COUNT(Nhóm)')).toBeTruthy()
-    await choose('Cách tính cho mỗi nhóm (Aggregation)', 'Tính trung bình (AVG)')
-    expect(screen.queryByText('Đã chọn đủ cấu hình cơ bản.')).toBeNull()
-    expect(screen.getByText('Chọn cột chia nhóm và cột dùng để tính để hoàn tất cấu hình cơ bản.')).toBeTruthy()
-  }, 15000)
+    async function choose(label:string,option:string) { await user.click(within(await popup(label)).getByText(option,{selector:'.ant-select-item-option-content'})) }
+    expect(screen.getByLabelText('Cách tính cho mỗi nhóm (Aggregation)').closest('.ant-select')?.className).toContain('disabled')
+    await choose('Nhóm dữ liệu theo (Dimension)','Nhóm')
+    await choose('Cột dùng để tính (Metric Column)','Nhóm')
+    expect(screen.getByText('Biểu đồ cột · Nhóm theo Nhóm · COUNT(Nhóm)')).toBeTruthy()
+    let options=await popup('Cách tính cho mỗi nhóm (Aggregation)')
+    expect(within(options).queryByText('Tính tổng (SUM)',{selector:'.ant-select-item-option-content'})).toBeNull()
+    await user.keyboard('{Escape}')
+    await choose('Cột dùng để tính (Metric Column)','Giá trị')
+    expect(screen.getByText('Biểu đồ cột · Nhóm theo Nhóm · SUM(Giá trị)')).toBeTruthy()
+    options=await popup('Cách tính cho mỗi nhóm (Aggregation)')
+    expect(within(options).getByText('Tính trung bình (AVG)',{selector:'.ant-select-item-option-content'})).toBeTruthy()
+    expect(within(options).queryByText('Giá trị lớn nhất (MAX)',{selector:'.ant-select-item-option-content'})).toBeNull()
+  },15000)
 
-  it('explains when a dataset has no numeric metric', () => {
-    render(<ChartConfigurationForm dataset={{ ...dataset, columns: [dataset.columns[0]] }} />)
-    expect(screen.getByText('Dataset không có cột số để tính trung bình. Bạn có thể chọn Đếm giá trị có dữ liệu (COUNT).')).toBeTruthy()
-    expect(screen.queryByText('Đã chọn đủ cấu hình cơ bản.')).toBeNull()
+  it('explains when all columns have aggregation disabled', () => {
+    render(<ChartConfigurationForm dataset={{...dataset,columns:dataset.columns.map(c=>({...c,allowedAggregations:[],defaultAggregation:null}))}} />)
+    expect(screen.getByText('Dataset chưa có cột được phép tính. Hãy cấu hình phép tính trong Dataset.')).toBeTruthy()
   })
 })

@@ -16,6 +16,8 @@ tmp/
 **/.idea/
 **/.vscode/
 *.log
+**/__pycache__/
 
 # CSV giữ ở máy, chưa đưa lên GitHub
 data/**/*.csv
+data/raw/business/

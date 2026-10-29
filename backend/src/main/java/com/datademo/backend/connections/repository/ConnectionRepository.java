@@ -80,6 +80,18 @@ public class ConnectionRepository {
     }
 
     @Transactional
+    public View update(long id, Input input, String password) {
+        try {
+            if(jdbc.query("SELECT id FROM database_connections WHERE id=? FOR UPDATE",(r,i)->r.getLong(1),id).isEmpty()) throw missing();
+            View old=get(id);
+            int count=jdbc.queryForObject("SELECT COUNT(*) FROM datasets WHERE connection_id=?",Integer.class,id);
+            if(count>0 && (!old.host().equals(input.host()) || old.port()!=input.port() || !old.databaseName().equals(input.databaseName())))
+                throw new ApiFailure(HttpStatus.CONFLICT,"CONNECTION_IN_USE","Connection has datasets. Create a new connection to change host, port or database.");
+            jdbc.update("UPDATE database_connections SET name=?,host=?,port=?,database_name=?,username=?,encrypted_password=? WHERE id=?",input.name(),input.host(),input.port(),input.databaseName(),input.username(),password,id);
+            return get(id);
+        } catch(DataAccessException e){throw unavailable();}
+    }
+    @Transactional
     public void delete(long id) {
         try {
             if (jdbc.query("SELECT id FROM database_connections WHERE id=? FOR UPDATE", (r, i) -> r.getLong(1), id).isEmpty()) throw missing();

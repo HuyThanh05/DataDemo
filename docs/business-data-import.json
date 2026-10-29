@@ -1,0 +1,27 @@
+{
+  "verifiedAt": "2026-10-29T07:51:30.540339+00:00",
+  "database": "datademo_source",
+  "tables": [
+    {
+      "table": "superstore_sales",
+      "rows": 9994,
+      "rowSha256": "113a566719ca86286999938867613db481920e9325a397bd8964292a525fae0a",
+      "totals": {
+        "sales": "2297200.860300",
+        "quantity": "37873",
+        "discount": "1561.090000",
+        "profit": "286397.021700"
+      }
+    },
+    {
+      "table": "coffee_shop_sales",
+      "rows": 149116,
+      "rowSha256": "f2a4ceeb4dff07cb87b06e74acd53969cecb0bd7c42b41e8a7da945a86700024",
+      "totals": {
+        "transaction_qty": "214470",
+        "unit_price": "504343.030000",
+        "revenue": "698812.330000"
+      }
+    }
+  ]
+}

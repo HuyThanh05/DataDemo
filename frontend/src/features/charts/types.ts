@@ -1,5 +1,5 @@
 export type ChartType = 'bar' | 'line' | 'pie' | 'table'
-export type Aggregation = 'AVG' | 'COUNT'
+export type Aggregation = 'AVG' | 'COUNT' | 'COUNT_DISTINCT' | 'SUM' | 'MIN' | 'MAX'
 export type FilterOperator = 'EQ' | 'NE' | 'GT' | 'GTE' | 'LT' | 'LTE' | 'IS_NULL' | 'IS_NOT_NULL'
 export type ChartFilter = { id: number; column: string; operator: FilterOperator; value: string }
 export type ChartConfiguration = {

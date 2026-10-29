@@ -7,8 +7,8 @@ PoC khai thác và trực quan hóa dữ liệu, tập trung vào luồng làm v
 ## Chức năng
 
 - Kiểm tra, lưu kết nối MySQL và đọc bảng/cột.
-- Tạo dataset, xem trước dữ liệu và đặt tên hiển thị cho cột.
-- Tạo biểu đồ cột, đường, tròn và bảng với AVG/COUNT, chia nhóm và bộ lọc.
+- Tạo dataset, xem trước, đặt nhãn cột và cấu hình vai trò/phép tính cho từng cột.
+- Tạo biểu đồ cột, đường, tròn và bảng với AVG/COUNT/SUM/MIN/MAX, chia nhóm và bộ lọc.
 - Thêm/gỡ biểu đồ, kéo thả, đổi kích thước và lọc chung trên dashboard.
 - Lưu, mở lại và xóa cấu hình; chặn xóa khi còn phụ thuộc.
 
@@ -55,7 +55,7 @@ Luồng demo: lưu kết nối → tạo dataset → tạo biểu đồ AVG đi�
 
 ## Phạm vi PoC
 
-- Chỉ hỗ trợ MySQL, bảng vật lý và phép tính AVG/COUNT.
+- Chỉ hỗ trợ MySQL, bảng vật lý và phép tính AVG/COUNT/SUM/MIN/MAX.
 - Chưa có đăng nhập/phân quyền, SQL Lab, chia sẻ/nhúng hoặc triển khai production.
 - Nhãn cột và cấu hình lưu trong `datademo_app`; dữ liệu nguồn giữ nguyên.
 - Không đưa mật khẩu hoặc `backend/.local/connection.key` lên Git. Giữ khóa để mở lại các kết nối đã lưu.
@@ -65,3 +65,7 @@ Luồng demo: lưu kết nối → tạo dataset → tạo biểu đồ AVG đi�
 - [Thiết kế API](docs/DataDemo-API-design-review.md)
 - [Nghiệm thu toàn luồng](docs/acceptance/step-10-acceptance.md)
 - [Kịch bản demo 7–10 phút](docs/demo-poc-script.md)
+
+- [Vai trò cột và phép tính](docs/dataset-column-policies.md)
+
+- [Hai dataset kinh doanh: Superstore và Coffee Shop](docs/business-datasets.md)

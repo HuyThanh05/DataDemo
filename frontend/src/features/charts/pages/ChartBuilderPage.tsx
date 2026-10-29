@@ -5,6 +5,7 @@ import { datasetKeys, datasetsApi } from '../../datasets/api'
 import type { DatasetColumn } from '../../datasets/types'
 import ChartConfigurationForm from '../components/ChartConfigurationForm'
 import SavedCharts from '../components/SavedCharts'
+import { savedSettings } from '../../datasets/columnPolicy'
 import { chartsApi } from '../api'
 
 export default function ChartBuilderPage() {
@@ -42,7 +43,9 @@ export default function ChartBuilderPage() {
         { title: 'Tên cột gốc', dataIndex: 'name' },
         { title: 'Kiểu dữ liệu', dataIndex: 'dataType' },
         { title: 'Dùng để chia nhóm', dataIndex: 'canGroup', render: value => value ? 'Có' : 'Không' },
-        { title: 'Tính trung bình (AVG)', dataIndex: 'canAggregate', render: value => value ? 'Có' : 'Không' },
+        { title: 'Vai trò', key: 'role', render: (_, c) => ({IDENTIFIER:'Định danh',DIMENSION:'Phân nhóm',MEASURE:'Đo lường'})[savedSettings(c).role] },
+        { title: 'Phép tính cho phép', key: 'allowed', render: (_, c) => savedSettings(c).allowedAggregations.join(', ') || 'Không' },
+        { title: 'Phép mặc định', key: 'default', render: (_, c) => savedSettings(c).defaultAggregation ?? 'Không chọn sẵn' },
         { title: 'Lọc', dataIndex: 'canFilter', render: value => value ? 'Có' : 'Không' },
       ]} />
     </section>

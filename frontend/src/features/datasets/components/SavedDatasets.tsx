@@ -24,7 +24,7 @@ export default function SavedDatasets() {
     <Table<DatasetSummary> rowKey="id" loading={query.isFetching} size="small" dataSource={query.data ?? []} pagination={{ pageSize: 5, hideOnSinglePage: true }} scroll={{ x: 'max-content' }} locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có dataset đã lưu." /> }} columns={[
       { title: 'Tên dataset', dataIndex: 'name' },
       { title: 'Bảng nguồn', dataIndex: 'tableName' },
-      { title: 'Thao tác', key: 'action', render: (_, dataset) => <div className="form-actions"><Button onClick={() => setParams({ datasetId: String(dataset.id) })}>Mở</Button><DeleteSavedButton kind="dataset" name={dataset.name} description="Chỉ xóa cấu hình dataset và tên hiển thị cột. Bảng và dữ liệu nguồn được giữ nguyên. Dataset còn biểu đồ hoặc bộ lọc dashboard sử dụng sẽ không được xóa." onDelete={() => remove(dataset.id)} /></div> },
+      { title: 'Thao tác', key: 'action', width: 180, render: (_, dataset) => <div className="form-actions"><Button onClick={() => setParams({ datasetId: String(dataset.id) })}>Mở</Button><DeleteSavedButton kind="dataset" name={dataset.name} description="Chỉ xóa cấu hình dataset và tên hiển thị cột. Bảng và dữ liệu nguồn được giữ nguyên. Dataset còn biểu đồ hoặc bộ lọc dashboard sử dụng sẽ không được xóa." onDelete={() => remove(dataset.id)} /></div> },
     ]} />
   </section>
 }

@@ -51,7 +51,7 @@ test('pie and table can be previewed, reopened and filtered together on a dashbo
   async function choose(id: string, label: string) {
     const input = page.locator('#' + id)
     await input.click()
-    const popup = page.locator('.ant-select-dropdown').filter({ visible: true })
+    const popup = page.locator('#' + await input.getAttribute('aria-controls')).locator('xpath=ancestor::div[contains(@class,"ant-select-dropdown")][1]')
     await popup.locator('.ant-select-item-option-content').filter({ hasText: new RegExp('^' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') }).click()
   }
   await page.setViewportSize({ width: 1600, height: 1200 })
@@ -59,8 +59,8 @@ test('pie and table can be previewed, reopened and filtered together on a dashbo
     await page.goto('/charts?datasetId=901')
     await choose('chart-type', option)
     await choose('chart-dimension', 'Môn học')
-    await choose('chart-aggregation', 'Đếm giá trị có dữ liệu (COUNT)')
     await choose('chart-metric', 'Điểm thi')
+    await choose('chart-aggregation', 'Đếm giá trị có dữ liệu (COUNT)')
     await page.getByLabel('Tên biểu đồ', { exact: true }).fill(name)
     const request = page.waitForRequest('**/api/charts/preview')
     await page.getByRole('button', { name: 'Xem trước', exact: true }).click()

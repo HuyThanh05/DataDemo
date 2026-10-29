@@ -1,0 +1,483 @@
+{
+  "preparedAt": "2026-10-29T07:50:11.116205+00:00",
+  "precision": "Money/ratios normalized to 6 decimal places to remove Excel binary floating-point noise; no currency conversion.",
+  "datasets": [
+    {
+      "table": "superstore_sales",
+      "datasetName": "Superstore — Bán hàng",
+      "rows": 9994,
+      "fields": [
+        {
+          "name": "row_id",
+          "label": "Mã dòng",
+          "sqlType": "INT",
+          "role": "IDENTIFIER",
+          "allowedAggregations": [
+            "COUNT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "order_id",
+          "label": "Mã đơn hàng",
+          "sqlType": "VARCHAR(32)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "order_date",
+          "label": "Ngày đặt hàng",
+          "sqlType": "DATE",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "ship_date",
+          "label": "Ngày giao hàng",
+          "sqlType": "DATE",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "ship_mode",
+          "label": "Hình thức vận chuyển",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "customer_id",
+          "label": "Mã khách hàng",
+          "sqlType": "VARCHAR(32)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "customer_name",
+          "label": "Khách hàng",
+          "sqlType": "VARCHAR(120)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "segment",
+          "label": "Phân khúc",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "country",
+          "label": "Quốc gia",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "city",
+          "label": "Thành phố",
+          "sqlType": "VARCHAR(120)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "state",
+          "label": "Bang",
+          "sqlType": "VARCHAR(120)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "postal_code",
+          "label": "Mã bưu chính",
+          "sqlType": "VARCHAR(20)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "region",
+          "label": "Khu vực",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "product_id",
+          "label": "Mã sản phẩm",
+          "sqlType": "VARCHAR(40)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "category",
+          "label": "Nhóm sản phẩm",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "sub_category",
+          "label": "Loại sản phẩm",
+          "sqlType": "VARCHAR(100)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "product_name",
+          "label": "Tên sản phẩm",
+          "sqlType": "VARCHAR(300)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "sales",
+          "label": "Doanh số (USD)",
+          "sqlType": "DECIMAL(20,6)",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "SUM",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "SUM"
+        },
+        {
+          "name": "quantity",
+          "label": "Số lượng",
+          "sqlType": "INT",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "SUM",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "SUM"
+        },
+        {
+          "name": "discount",
+          "label": "Tỷ lệ giảm giá",
+          "sqlType": "DECIMAL(20,6)",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "AVG"
+        },
+        {
+          "name": "profit",
+          "label": "Lợi nhuận (USD)",
+          "sqlType": "DECIMAL(20,6)",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "SUM",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "SUM"
+        },
+        {
+          "name": "order_month",
+          "label": "Tháng đặt hàng",
+          "sqlType": "CHAR(7)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        }
+      ],
+      "csv": "data/processed/business/superstore_sales.csv",
+      "csvSha256": "ea94ce08a493e329d7fe350380a1a5979d590296ac3360d421e9033c49ec16fc",
+      "raw": "data/raw/business/superstore.xls",
+      "rawSha256": "db3868142f287dc0ed5fec1b045088c4aaf73971895a01f230e6fd16172729e5",
+      "source": "https://www.tableau.com/learn/tutorials/on-demand/getting-started",
+      "download": "https://raw.githubusercontent.com/Simplilearn-Edu/Tableau-Datasets/master/Project%202/Sample%20-%20Superstore.xls",
+      "synthetic": true,
+      "currency": "USD",
+      "dateMin": "2014-01-03",
+      "dateMax": "2017-12-30",
+      "numericTotals": {
+        "sales": "2297200.860300",
+        "quantity": "37873",
+        "discount": "1561.090000",
+        "profit": "286397.021700"
+      },
+      "categories": {
+        "order_id": 5009,
+        "order_date": 1237,
+        "ship_date": 1334,
+        "ship_mode": 4,
+        "customer_id": 793,
+        "customer_name": 793,
+        "segment": 3,
+        "country": 1,
+        "city": 531,
+        "state": 49,
+        "postal_code": 631,
+        "region": 4,
+        "product_id": 1862,
+        "category": 3,
+        "sub_category": 17,
+        "product_name": 1850,
+        "order_month": 48
+      }
+    },
+    {
+      "table": "coffee_shop_sales",
+      "datasetName": "Coffee Shop — Bán cà phê",
+      "rows": 149116,
+      "fields": [
+        {
+          "name": "transaction_id",
+          "label": "Mã giao dịch",
+          "sqlType": "INT",
+          "role": "IDENTIFIER",
+          "allowedAggregations": [
+            "COUNT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "transaction_date",
+          "label": "Ngày giao dịch",
+          "sqlType": "DATE",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "transaction_time",
+          "label": "Giờ giao dịch",
+          "sqlType": "TIME",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "transaction_qty",
+          "label": "Số lượng",
+          "sqlType": "INT",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "SUM",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "SUM"
+        },
+        {
+          "name": "store_id",
+          "label": "Mã cửa hàng",
+          "sqlType": "VARCHAR(16)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "store_location",
+          "label": "Cửa hàng",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "product_id",
+          "label": "Mã sản phẩm",
+          "sqlType": "VARCHAR(16)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "unit_price",
+          "label": "Đơn giá (USD)",
+          "sqlType": "DECIMAL(20,6)",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "AVG"
+        },
+        {
+          "name": "product_category",
+          "label": "Nhóm sản phẩm",
+          "sqlType": "VARCHAR(80)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "product_type",
+          "label": "Loại sản phẩm",
+          "sqlType": "VARCHAR(120)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "product_detail",
+          "label": "Tên sản phẩm",
+          "sqlType": "VARCHAR(200)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        },
+        {
+          "name": "revenue",
+          "label": "Doanh thu (USD)",
+          "sqlType": "DECIMAL(20,6)",
+          "role": "MEASURE",
+          "allowedAggregations": [
+            "COUNT",
+            "SUM",
+            "AVG",
+            "MIN",
+            "MAX"
+          ],
+          "defaultAggregation": "SUM"
+        },
+        {
+          "name": "transaction_month",
+          "label": "Tháng giao dịch",
+          "sqlType": "CHAR(7)",
+          "role": "DIMENSION",
+          "allowedAggregations": [
+            "COUNT",
+            "COUNT_DISTINCT"
+          ],
+          "defaultAggregation": "COUNT"
+        }
+      ],
+      "csv": "data/processed/business/coffee_shop_sales.csv",
+      "csvSha256": "2748353af96ea13fa29d52158aaa773fa5e0e654219b6c12dfd18ccb2f140f25",
+      "raw": "data/raw/business/coffee-shop.zip",
+      "rawSha256": "be13c59c4cfdc0d1b08ceab514aea50a0cd329c916e4c3585eeef92a5b4c3a2c",
+      "source": "https://mavenanalytics.io/data-playground/coffee-shop-sales",
+      "download": "https://maven-datasets.s3.amazonaws.com/Coffee+Shop+Sales/Coffee+Shop+Sales.zip",
+      "synthetic": true,
+      "currency": "USD",
+      "dateMin": "2023-01-01",
+      "dateMax": "2023-06-30",
+      "numericTotals": {
+        "transaction_qty": "214470",
+        "unit_price": "504343.030000",
+        "revenue": "698812.330000"
+      },
+      "categories": {
+        "transaction_date": 181,
+        "transaction_time": 25762,
+        "store_id": 3,
+        "store_location": 3,
+        "product_id": 80,
+        "product_category": 9,
+        "product_type": 29,
+        "product_detail": 80,
+        "transaction_month": 6
+      }
+    }
+  ]
+}

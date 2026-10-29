@@ -48,7 +48,7 @@ public class ChartService {
         var live = connections.columns(saved.connectionId(), saved.tableName());
         var columns = saved.columns().stream().filter(c -> live.stream().anyMatch(l -> l.name().equals(c.name())))
                 .map(c -> { var l = live.stream().filter(v -> v.name().equals(c.name())).findFirst().orElseThrow();
-                    return new Column(c.id(), c.name(), c.displayName(), l.dataType(), l.nullable(), c.canGroup(), c.canAggregate(), c.canFilter()); }).toList();
+                    return new Column(c.id(), c.name(), c.displayName(), l.dataType(), l.nullable(), c.canGroup(), c.canAggregate(), c.canFilter(), c.role(), c.allowedAggregations(), c.defaultAggregation()); }).toList();
         var plan = compiler.compile(input, new Detail(saved.id(), saved.name(), saved.connectionId(), saved.tableName(), columns),maxFilters);
         return plan;
     }

@@ -17,6 +17,7 @@ public class ConnectionController {
     @GetMapping public List<View> list(){return manager.list();}
     @GetMapping("/{id}") public View get(@PathVariable long id){return manager.get(id);}
     @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable long id){manager.delete(id);return ResponseEntity.noContent().build();}
+    @PutMapping("/{id}") public View update(@PathVariable long id,@RequestBody Input input){return manager.update(id,input);}
     @PostMapping public ResponseEntity<View> save(@RequestBody Input input){return ResponseEntity.status(HttpStatus.CREATED).body(manager.save(input));}
     @PostMapping("/test") public TestResult test(@RequestBody Input input){return manager.test(input);}
     @PostMapping("/{id}/test") public TestResult test(@PathVariable long id){return manager.test(id);}

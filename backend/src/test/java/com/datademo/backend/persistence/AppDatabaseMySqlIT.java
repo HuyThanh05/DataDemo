@@ -40,7 +40,7 @@ class AppDatabaseMySqlIT {
                     .baselineOnMigrate(true).baselineVersion("0").cleanDisabled(true).load();
             flyway.migrate();
             if (existing) assertArrayEquals(before, digest(jdbc), "Existing configuration and ciphertext must not change");
-            assertEquals("7", flyway.info().current().getVersion().toString());
+            assertEquals("9", flyway.info().current().getVersion().toString());
             assertEquals(0, flyway.migrate().migrationsExecuted);
             assertEquals(0, pool.getHikariPoolMXBean().getActiveConnections());
         }
@@ -48,7 +48,7 @@ class AppDatabaseMySqlIT {
 
     private byte[] digest(JdbcTemplate jdbc) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        jdbc.query("SELECT id,name,host,port,database_name,username,encrypted_password,created_at FROM database_connections ORDER BY id", row -> {
+        jdbc.query("SELECT id,name,host,port,database_name,username,encrypted_password,created_at FROM database_connections ORDER BY id", (org.springframework.jdbc.core.RowCallbackHandler) row -> {
             for (int column = 1; column <= 8; column++) {
                 byte[] value = String.valueOf(row.getObject(column)).getBytes(StandardCharsets.UTF_8);
                 digest.update(java.nio.ByteBuffer.allocate(4).putInt(value.length).array());

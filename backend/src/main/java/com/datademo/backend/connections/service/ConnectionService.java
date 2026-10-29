@@ -24,6 +24,13 @@ public class ConnectionService {
     public com.datademo.backend.datasource.TablePreview previewTable(long id, String table) {
         return source.preview(storedInput(id), table);
     }
+    public View update(long id, Input input){
+        Input old=storedInput(id);
+        Input validated=validator.validate(new Input(input.name(),input.host(),input.port(),input.databaseName(),input.username(),
+            input.password()==null || input.password().isEmpty()?old.password():input.password()));
+        source.test(validated);
+        return repository.update(id,validated,cipher.encrypt(validated.password()));
+    }
     public View save(Input input){
         Input validated=validator.validate(input);
         source.test(validated);

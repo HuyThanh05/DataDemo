@@ -13,9 +13,9 @@ export default function DatasetPreview({ connectionId, table, datasetId, labels 
     <div className="section-heading"><h2>Xem trước</h2><div className="form-actions"><Tag>Tối đa 100 dòng</Tag><Button size="small" icon={<ReloadOutlined />} aria-label="Làm mới xem trước" disabled={!connectionId || !table} loading={query.isFetching} onClick={() => { void query.refetch() }} /></div></div>
     {!connectionId || !table ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chọn kết nối và bảng để xem dữ liệu." /> : <>
       {query.error && <Alert type="error" showIcon title={query.error.message} className="section-alert" action={<Button size="small" onClick={() => { void query.refetch() }}>Thử lại</Button>} />}
-      <Table rowKey="previewKey" size="small" loading={query.isFetching} pagination={{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }} scroll={{ x: 'max-content' }}
+      <Table rowKey="previewKey" size="small" loading={query.isFetching} pagination={{ pageSize: 5, showSizeChanger: false, hideOnSinglePage: true }} scroll={{ x: 'max-content', y: 240 }}
         columns={(query.data?.columns ?? []).map((column, index) => ({
-          key: index, title: labels[column.name]?.trim() || column.name, dataIndex: String(index),
+          key: index, width: 180, title: labels[column.name]?.trim() || column.name, dataIndex: String(index),
           render: (value: unknown) => value === null ? <span className="preview-null">NULL</span> : value === '' ? <span className="preview-null">(trống)</span> : String(value),
         }))}
         dataSource={(query.error ? [] : query.data?.rows ?? []).map((row, index) => ({ previewKey: index, ...Object.fromEntries(row.map((value, column) => [String(column), value])) }))}

@@ -1,5 +1,5 @@
 import { request } from '../../shared/api/http'
-import type { DatasetCreate, DatasetDetail, DatasetSource, DatasetSummary, TablePreview } from './types'
+import type { ColumnSettings, DatasetCreate, DatasetDetail, DatasetSource, DatasetSummary, TablePreview } from './types'
 
 export const datasetKeys = {
   list: ['datasets'] as const,
@@ -12,7 +12,7 @@ export const datasetsApi = {
   get: (id: number, signal?: AbortSignal) => request<DatasetDetail>(`/datasets/${id}`, { signal }),
   remove: (id: number) => request<void>(`/datasets/${id}`, { method: 'DELETE' }),
   create: (input: DatasetCreate) => request<DatasetDetail>('/datasets', { body: input }),
-  update: (id: number, body: { name: string; columnLabels: Record<string, string> }) => request<DatasetDetail>(`/datasets/${id}`, { method: 'PATCH', body }),
+  update: (id: number, body: { name: string; columnLabels: Record<string, string>; columnSettings?: Record<string, ColumnSettings> }) => request<DatasetDetail>(`/datasets/${id}`, { method: 'PATCH', body }),
   previewSaved: (id: number, signal?: AbortSignal) => request<TablePreview>(`/datasets/${id}/preview`, { signal }),
   preview: (source: DatasetSource, signal?: AbortSignal) => request<TablePreview>('/datasets/preview', { body: source, signal }),
 }

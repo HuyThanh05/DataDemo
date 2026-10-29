@@ -12,6 +12,7 @@ export default function ConnectionsPage() {
   const { search, selectedConnection: selected, setSelectedConnection } = useOutletContext<WorkspaceContext>()
   const navigate = useNavigate()
   const client = useQueryClient()
+  const [editing, setEditing] = useState<ConnectionView | undefined>()
   const [requestedTable, setRequestedTable] = useState('')
   const [retesting, setRetesting] = useState(false)
   const [retestResult, setRetestResult] = useState<{ id: number; ok: boolean; message: string } | null>(null)
@@ -26,6 +27,8 @@ export default function ConnectionsPage() {
   function saved(connection: ConnectionView) {
     client.setQueryData<ConnectionView[]>(connectionKeys.list, old => [connection, ...(old ?? []).filter(c => c.id !== connection.id)])
     void client.invalidateQueries({ queryKey: connectionKeys.list })
+    setEditing(undefined)
+    void client.invalidateQueries()
     select(connection)
   }
   async function remove(connection: ConnectionView) {
@@ -53,8 +56,8 @@ export default function ConnectionsPage() {
   return <>
     <header className="page-heading"><h1>Kết nối database</h1><p>Nhập thông tin, kiểm tra kết nối và xem bảng/cột.</p></header>
     <div className="connection-grid"><div className="left-stack">
-      <ConnectionList connections={list.data ?? []} search={search} selectedId={selected?.id} loading={list.isFetching} error={list.error?.message} onRefresh={() => { void list.refetch() }} onSelect={select} onDelete={remove} />
-      <ConnectionForm onSaved={saved} />
+      <ConnectionList connections={list.data ?? []} search={search} selectedId={selected?.id} loading={list.isFetching} error={list.error?.message} onRefresh={() => { void list.refetch() }} onSelect={select} onEdit={setEditing} onDelete={remove} />
+      <ConnectionForm key={editing?.id ?? "new"} editing={editing} onCancel={() => setEditing(undefined)} onSaved={saved} />
     </div>
       <SourceMetadata connection={selected} tables={tables.data ?? []} table={table} columns={columns.data ?? []} loading={tables.isFetching || columns.isFetching} retesting={retesting} error={error} success={result?.ok ? result.message : undefined} onSelectTable={setRequestedTable} onRetest={() => { void retest() }} onCreateDataset={() => { if (selected && table) navigate(`/datasets?${new URLSearchParams({ connectionId: String(selected.id), table })}`) }} />
     </div>

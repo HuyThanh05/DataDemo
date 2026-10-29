@@ -17,11 +17,11 @@ public class ChartQueryCompiler {
     Plan compile(Request input, Detail dataset,int maxFilters) {
         if (input == null || input.datasetId() == null || input.datasetId() != dataset.id()
                 || !Set.of("bar", "line", "pie", "table").contains(Objects.toString(input.chartType(), ""))
-                || !Set.of("AVG", "COUNT").contains(Objects.toString(input.aggregation(), ""))
+                || !Set.of("AVG", "COUNT", "COUNT_DISTINCT", "SUM", "MIN", "MAX").contains(Objects.toString(input.aggregation(), ""))
                 || !Set.of("ASC", "DESC").contains(Objects.toString(input.sortDirection(), ""))) throw invalid();
         Column dimension = column(dataset, input.dimension());
         Column metric = column(dataset, input.metricColumn());
-        if (!dimension.canGroup() || (input.aggregation().equals("AVG") && (!metric.canAggregate() || !numeric(metric.dataType())))) throw invalid();
+        if (!metric.allowedAggregations().contains(input.aggregation()) || !dimension.canGroup() || (!Set.of("COUNT","COUNT_DISTINCT").contains(input.aggregation()) && (!metric.canAggregate() || !numeric(metric.dataType())))) throw invalid();
         List<Filter> filters = input.filters() == null ? List.of() : input.filters();
         if (filters.size() > maxFilters) throw invalid();
         List<String> conditions = new ArrayList<>();
@@ -64,7 +64,8 @@ public class ChartQueryCompiler {
             }
             conditions.add(quote(c.name()) + " " + sqlOperator + " ?"); values.add(value);
         }
-        String sql = "SELECT " + expression + ", " + input.aggregation() + "(" + quote(metric.name()) + ") FROM " + quote(dataset.tableName())
+        String metricSql = input.aggregation().equals("COUNT_DISTINCT") ? "COUNT(DISTINCT " + quote(metric.name()) + ")" : input.aggregation() + "(" + quote(metric.name()) + ")";
+        String sql = "SELECT " + expression + ", " + metricSql + " FROM " + quote(dataset.tableName())
                 + (conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions))
                 + " GROUP BY 1 ORDER BY 1 " + input.sortDirection() + " LIMIT 1001";
         return new Plan(sql, List.copyOf(values));

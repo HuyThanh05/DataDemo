@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Alert, Button, Empty, Input, Select, Spin } from 'antd'
+import { Alert, Button, Empty, Input, Select, Spin, Tag } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { connectionKeys, connectionsApi } from '../../connections/api'
@@ -7,7 +7,8 @@ import DatasetPreview from '../components/DatasetPreview'
 import DatasetColumnLabels from '../components/DatasetColumnLabels'
 import SavedDatasets from '../components/SavedDatasets'
 import { datasetKeys, datasetsApi } from '../api'
-import type { DatasetDetail } from '../types'
+import { savedSettings } from '../columnPolicy'
+import type { ColumnSettings, DatasetDetail } from '../types'
 
 export default function DatasetPage() {
   const [params] = useSearchParams()
@@ -19,7 +20,7 @@ export default function DatasetPage() {
   else if (id !== undefined && detail.isPending) content = <Spin description="Đang mở dataset…"><div style={{ minHeight: 120 }} /></Spin>
   else if (id !== undefined && detail.error) content = <Alert type="error" showIcon title={detail.error.message} action={<Button onClick={() => { void detail.refetch() }}>Thử lại</Button>} />
   else content = <DatasetEditor key={id ?? 'new'} saved={id === undefined ? undefined : detail.data} />
-  return <>{content}<SavedDatasets /></>
+  return <div className="dataset-workspace">{content}<SavedDatasets /></div>
 }
 
 function DatasetEditor({ saved }: { saved?: DatasetDetail }) {
@@ -33,6 +34,9 @@ function DatasetEditor({ saved }: { saved?: DatasetDetail }) {
   const [columnLabelsBySource, setColumnLabelsBySource] = useState<Record<string, Record<string, string>>>(() => saved ? {
     [JSON.stringify([saved.connectionId, saved.tableName])]: Object.fromEntries(saved.columns.map(c => [c.name, c.displayName])),
   } : {})
+  const [settingsBySource,setSettingsBySource] = useState<Record<string,Record<string,ColumnSettings>>>(()=>saved?{
+    [JSON.stringify([saved.connectionId,saved.tableName])]:Object.fromEntries(saved.columns.map(c=>[c.name,savedSettings(c)])),
+  }:{})
   const rawId = saved ? String(saved.connectionId) : params.get('connectionId') ?? ''
   const connectionId = /^\d+$/.test(rawId) && Number.isSafeInteger(Number(rawId)) && Number(rawId) > 0 ? Number(rawId) : undefined
   const requestedTable = saved?.tableName ?? params.get('table') ?? ''
@@ -43,6 +47,7 @@ function DatasetEditor({ saved }: { saved?: DatasetDetail }) {
   const loading = list.isFetching || tables.isFetching
   const activeConnectionId = selected && !tables.error && !list.error ? selected.id : undefined
   const sourceKey = JSON.stringify([activeConnectionId, table])
+  const columnSettings = settingsBySource[sourceKey] ?? {}
   const columnLabels = columnLabelsBySource[sourceKey] ?? {}
 
   function changeColumnLabel(column: string, label: string) {
@@ -60,12 +65,14 @@ function DatasetEditor({ saved }: { saved?: DatasetDetail }) {
     pending.current = true; setSaving(true); setSaveError('')
     try {
       const result = saved
-        ? await datasetsApi.update(saved.id, { name: datasetName, columnLabels })
-        : await datasetsApi.create({ name: datasetName, connectionId: activeConnectionId, tableName: table, columnLabels })
+        ? await datasetsApi.update(saved.id, { name: datasetName, columnLabels, columnSettings })
+        : await datasetsApi.create({ name: datasetName, connectionId: activeConnectionId, tableName: table, columnLabels, columnSettings })
       client.setQueryData(datasetKeys.detail(result.id), result)
       await client.invalidateQueries({ queryKey: datasetKeys.list })
       setDatasetName(result.name)
       setColumnLabelsBySource(previous => ({ ...previous, [sourceKey]: Object.fromEntries(result.columns.map(c => [c.name, c.displayName])) }))
+      setSettingsBySource(previous=>({...previous,[sourceKey]:Object.fromEntries(result.columns.map(c=>[c.name,savedSettings(c)]))}))
+      void client.invalidateQueries({ queryKey: ['dataset', result.id] })
       setDirty(false)
       setParams({ datasetId: String(result.id) }, { replace: true })
     } catch (error) { setSaveError((error as Error).message) }
@@ -73,10 +80,10 @@ function DatasetEditor({ saved }: { saved?: DatasetDetail }) {
   }
 
   return <>
-    <header className="page-heading dataset-heading"><div><h1>Dataset</h1><p>Chọn nguồn, xem trước và lưu cấu hình dataset.</p></div><div className="form-actions"><Button disabled={saving} onClick={() => { setDatasetName(''); setColumnLabelsBySource({}); setDirty(false); setSaveError(''); setParams({}) }}>Dataset mới</Button><Button type="primary" onClick={() => { void save() }} loading={saving}>Lưu dataset</Button></div></header>
-    <section className="surface">
+    <header className="page-heading dataset-heading"><div><h1>Dataset</h1><p>Chọn nguồn, xem trước và lưu cấu hình dataset.</p></div><div className="form-actions"><Button disabled={saving} onClick={() => { setDatasetName(''); setColumnLabelsBySource({}); setSettingsBySource({}); setDirty(false); setSaveError(''); setParams({}) }}>Dataset mới</Button><Button type="primary" onClick={() => { void save() }} loading={saving}>Lưu dataset</Button></div></header>
+    <section className="surface dataset-source-panel">
       {saveError && <Alert type="error" showIcon title={saveError} className="section-alert" />}
-      {saved && !dirty && <Alert type="success" showIcon title="Dataset đã được lưu trong datademo_app." className="section-alert" />}
+
       {list.error && <Alert type="error" showIcon title={list.error.message} className="section-alert" action={<Button size="small" onClick={() => { void list.refetch() }}>Thử lại</Button>} />}
       {!list.isPending && !list.error && rawId && !selected && <Alert type="warning" title="Kết nối trong đường dẫn không tồn tại. Hãy chọn lại kết nối." className="section-alert" />}
       <div className="dataset-source-fields">
@@ -84,17 +91,19 @@ function DatasetEditor({ saved }: { saved?: DatasetDetail }) {
         <div><label htmlFor="dataset-table">Bảng</label><Select id="dataset-table" placeholder="Chọn bảng nguồn" style={{ width: '100%' }} value={table} loading={tables.isFetching} disabled={saving || !!saved || !selected || tables.isPending || !!tables.error} options={(tables.data ?? []).map(t => ({ value: t, label: t }))} onChange={name => setParams({ connectionId: String(selected!.id), table: name })} /></div>
         <div><label htmlFor="dataset-name">Tên dataset</label><Input id="dataset-name" value={datasetName} disabled={saving} onChange={event => { setDatasetName(event.target.value); setDirty(true); setSaveError('') }} placeholder="Ví dụ: Điểm thi Đà Nẵng 2026" maxLength={100} showCount aria-describedby="dataset-name-help" /></div>
       </div>
-      <p id="dataset-name-help" className="footnote">Bấm Lưu dataset để giữ tên và nhãn cột. Dataset đã lưu có nguồn cố định; chọn Dataset mới để dùng bảng khác.</p>
+      <div className="dataset-source-summary">
+        <p id="dataset-name-help" className="footnote">{selected && table && !tables.error ? `Đã chọn ${selected.name} → ${table}` : 'Tên, nhãn cột và phép tính được lưu cùng dataset.'}</p>
+        {saved && !dirty ? <Tag color="success">Đã lưu dataset</Tag> : dirty ? <Tag color="gold">Có thay đổi chưa lưu</Tag> : null}
+      </div>
       {tables.error && <Alert type="error" showIcon title={tables.error.message} className="section-alert" action={<Button size="small" onClick={() => { void tables.refetch() }}>Thử lại</Button>} />}
       <Spin spinning={loading}>
         {!list.isPending && !list.error && !list.data?.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có kết nối. Hãy quay về Kết nối để thêm và lưu nguồn dữ liệu." />}
         {selected && !tables.isPending && !tables.error && !tables.data?.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Kết nối này không có bảng được phép đọc." />}
         {selected && !tables.isPending && !tables.error && requestedTable && !table && <Alert type="warning" title="Bảng trong đường dẫn không còn khả dụng. Hãy chọn lại bảng." className="dataset-selection" />}
-        {selected && table && !loading && !tables.error && <Alert type="success" showIcon title={`Đã chọn ${selected.name} → ${table}`} description="Cấu hình tham chiếu bảng nguồn, không sao chép dữ liệu." className="dataset-selection" />}
       </Spin>
     </section>
-    <div className="dataset-detail-grid">
-      <DatasetColumnLabels connectionId={activeConnectionId} table={table} labels={columnLabels} onChange={changeColumnLabel} disabled={saving} />
+    <div className="dataset-detail-grid dataset-policy-layout">
+      <DatasetColumnLabels connectionId={activeConnectionId} table={table} labels={columnLabels} settings={columnSettings} onSettingsChange={(column,policy)=>{ setSettingsBySource(previous=>({...previous,[sourceKey]:{...previous[sourceKey],[column]:policy}})); setDirty(true); setSaveError('') }} onChange={changeColumnLabel} disabled={saving} />
       <DatasetPreview connectionId={activeConnectionId} table={table} datasetId={saved?.id} labels={columnLabels} />
     </div>
   </>

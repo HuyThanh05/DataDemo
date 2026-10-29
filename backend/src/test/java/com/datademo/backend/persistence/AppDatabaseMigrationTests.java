@@ -30,7 +30,7 @@ class AppDatabaseMigrationTests {
     @Test void freshDatabaseMigratesOnceAndRepositoryUsesPool() {
         try (var pool = pool()) {
             var flyway = flyway(pool);
-            assertEquals(7, flyway.migrate().migrationsExecuted);
+            assertEquals(9, flyway.migrate().migrationsExecuted);
             assertEquals(0, flyway.migrate().migrationsExecuted);
             var jdbc = new JdbcTemplate(pool);
             var repository = new ConnectionRepository(jdbc);
@@ -44,6 +44,22 @@ class AppDatabaseMigrationTests {
         }
     }
 
+    @Test void versionEightBackfillsExistingDatasetWithoutChangingChart() {
+        try(var pool=pool()) {
+            Flyway.configure().dataSource(pool).locations("classpath:db/migration").target("7").load().migrate();
+            var jdbc=new JdbcTemplate(pool);
+            jdbc.update("INSERT INTO database_connections(id,name,host,port,database_name,username,encrypted_password) VALUES(1,'Source','localhost',3306,'source','reader','cipher')");
+            jdbc.update("INSERT INTO datasets(id,name,connection_id,table_name) VALUES(1,'Original',1,'sales')");
+            jdbc.update("INSERT INTO dataset_columns(id,dataset_id,column_name,display_name,data_type,is_nullable,ordinal_position,can_group,can_aggregate,can_filter) VALUES(1,1,'amount','Amount','decimal',false,0,true,true,true),(2,1,'name','Name','varchar',false,1,true,false,true)");
+            assertEquals(2,flyway(pool).migrate().migrationsExecuted);
+            var restored=new com.datademo.backend.datasets.repository.DatasetRepository(jdbc).get(1);
+            assertEquals("Original",restored.name());
+            assertEquals(java.util.List.of("COUNT","SUM","AVG","MIN","MAX"),restored.columns().getFirst().allowedAggregations());
+            assertEquals("AVG",restored.columns().getFirst().defaultAggregation());
+            assertEquals(java.util.List.of("COUNT","COUNT_DISTINCT"),restored.columns().get(1).allowedAggregations());
+            assertEquals(0,flyway(pool).migrate().migrationsExecuted);
+        }
+    }
     @Test void existingPocRowsAndCiphertextSurviveBaselineAndRestart() {
         try (var pool = pool()) {
             // Emulate the table created by the pre-Flyway application.
@@ -52,8 +68,8 @@ class AppDatabaseMigrationTests {
             jdbc.update("INSERT INTO database_connections(id,name,host,port,database_name,username,encrypted_password) VALUES(?,?,?,?,?,?,?)",
                     42, "Existing", "localhost", 3306, "source", "reader", "unchanged-iv:ciphertext");
             var flyway = flyway(pool);
-            assertEquals(7, flyway.migrate().migrationsExecuted);
-            assertEquals("7", flyway.info().current().getVersion().toString());
+            assertEquals(9, flyway.migrate().migrationsExecuted);
+            assertEquals("9", flyway.info().current().getVersion().toString());
             assertEquals(0, flyway(pool).migrate().migrationsExecuted);
             assertEquals("unchanged-iv:ciphertext", jdbc.queryForObject("SELECT encrypted_password FROM database_connections WHERE id=42", String.class));
             assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM database_connections", Integer.class));

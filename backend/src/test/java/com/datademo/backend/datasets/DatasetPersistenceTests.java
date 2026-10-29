@@ -30,6 +30,20 @@ class DatasetPersistenceTests {
         assertEquals(7,restored.connectionId()); assertEquals("scores",restored.tableName());
         assertThrows(Exception.class,()->jdbc.update("DELETE FROM database_connections WHERE id=7"));
     }
+    @Test void policiesPersistAndUsedAggregationsCannotBeRemoved() {
+        source();
+        var created=repository.create("Sales",7,"sales",List.of(new Column(0,"revenue","Doanh thu","decimal",true,true,true,true)));
+        var settings=new com.datademo.backend.datasets.dto.DatasetDtos.ColumnSettings("MEASURE",List.of("SUM","COUNT"),"SUM");
+        repository.updateSettings(created.id(),"Sales",Map.of(),Map.of("revenue",settings));
+        var column=repository.get(created.id()).columns().getFirst();
+        assertEquals("MEASURE",column.role()); assertEquals(List.of("SUM","COUNT"),column.allowedAggregations()); assertEquals("SUM",column.defaultAggregation());
+        jdbc.update("INSERT INTO charts(name,dataset_id,configuration_json) VALUES(?,?,?)","Total",created.id(),"{\"datasetId\":"+created.id()+",\"chartType\":\"bar\",\"dimension\":\"revenue\",\"aggregation\":\"SUM\",\"metricColumn\":\"revenue\",\"sortDirection\":\"ASC\",\"filters\":[]}");
+        try {
+            assertThrows(ApiFailure.class,()->repository.updateSettings(created.id(),"Changed",Map.of(),Map.of("revenue",new com.datademo.backend.datasets.dto.DatasetDtos.ColumnSettings("IDENTIFIER",List.of("COUNT"),"COUNT"))));
+            assertEquals("SUM",repository.get(created.id()).columns().getFirst().defaultAggregation());
+            assertEquals("Sales",repository.get(created.id()).name());
+        } finally { jdbc.update("DELETE FROM charts WHERE dataset_id=?",created.id()); }
+    }
     @Test void columnFailureRollsBackWholeDataset() {
         source();
         var column = new Column(0,"score","Điểm","decimal",false,true,true,true);

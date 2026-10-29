@@ -1,0 +1,75 @@
+[
+  {
+    "datasetId": 17,
+    "name": "Superstore — Bán hàng",
+    "connectionId": 15,
+    "table": "superstore_sales",
+    "rows": 9994,
+    "created": true,
+    "previewRows": 100,
+    "checks": [
+      {
+        "dimension": "category",
+        "aggregation": "SUM",
+        "metric": "sales",
+        "filter": null,
+        "groups": 3,
+        "sumOfGroups": "2297200.860300"
+      },
+      {
+        "dimension": "region",
+        "aggregation": "COUNT_DISTINCT",
+        "metric": "order_id",
+        "filter": null,
+        "groups": 4,
+        "sumOfGroups": "5009"
+      },
+      {
+        "dimension": "category",
+        "aggregation": "SUM",
+        "metric": "profit",
+        "filter": null,
+        "groups": 3,
+        "sumOfGroups": "286397.021700"
+      }
+    ]
+  },
+  {
+    "datasetId": 18,
+    "name": "Coffee Shop — Bán cà phê",
+    "connectionId": 15,
+    "table": "coffee_shop_sales",
+    "rows": 149116,
+    "created": true,
+    "previewRows": 100,
+    "checks": [
+      {
+        "dimension": "store_location",
+        "aggregation": "SUM",
+        "metric": "revenue",
+        "filter": null,
+        "groups": 3,
+        "sumOfGroups": "698812.330000"
+      },
+      {
+        "dimension": "product_category",
+        "aggregation": "SUM",
+        "metric": "transaction_qty",
+        "filter": null,
+        "groups": 9,
+        "sumOfGroups": "214470"
+      },
+      {
+        "dimension": "store_location",
+        "aggregation": "SUM",
+        "metric": "revenue",
+        "filter": [
+          "product_category",
+          "Coffee"
+        ],
+        "groups": 3,
+        "sumOfGroups": "269952.450000"
+      }
+    ]
+  }
+]

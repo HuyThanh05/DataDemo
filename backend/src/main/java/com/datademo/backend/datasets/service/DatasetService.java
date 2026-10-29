@@ -32,6 +32,8 @@ public class DatasetService {
         if (metadata.isEmpty()) throw invalid("Bảng không có cột hợp lệ.");
         var labels = labels(request.columnLabels(), metadata.stream().map(c -> c.name()).toList());
         List<Column> columns = metadata.stream().map(c -> new Column(0, c.name(), labels.getOrDefault(c.name(), c.name()), c.dataType(), c.nullable(), true, numeric(c.dataType()), true)).toList();
+        var settings=validateSettings(request.columnSettings(),columns);
+        columns=columns.stream().map(c->settings.containsKey(c.name())?ColumnPolicy.apply(c,settings.get(c.name())):ColumnPolicy.apply(c,new ColumnSettings(c.role(),c.allowedAggregations(),c.defaultAggregation()))).toList();
         return repository.create(name, request.connectionId(), request.tableName(), columns);
     }
 
@@ -40,12 +42,25 @@ public class DatasetService {
         Detail current = repository.get(id);
         String name = request.name() == null ? current.name() : name(request.name());
         var labels = labels(request.columnLabels(), current.columns().stream().map(Column::name).toList());
-        return repository.update(id, name, labels);
+        var settings=validateSettings(request.columnSettings(),current.columns());
+        if(settings.isEmpty()) return repository.update(id, name, labels);
+        return repository.updateSettings(id,name,labels,settings);
     }
 
     public TablePreview preview(long id) {
         Detail dataset = repository.get(id);
         return connections.previewTable(dataset.connectionId(), dataset.tableName());
+    }
+
+    private Map<String,ColumnSettings> validateSettings(Map<String,ColumnSettings> settings,List<Column> columns) {
+        if(settings==null) return Map.of();
+        Map<String,ColumnSettings> normalized=new LinkedHashMap<>();
+        for(var entry:settings.entrySet()) {
+            var column=columns.stream().filter(c->c.name().equals(entry.getKey())).findFirst().orElseThrow(()->invalid("Cột cấu hình không thuộc dataset."));
+            var applied=ColumnPolicy.apply(column,entry.getValue());
+            normalized.put(entry.getKey(),new ColumnSettings(applied.role(),applied.allowedAggregations(),applied.defaultAggregation()));
+        }
+        return normalized;
     }
 
     private String name(String value) {

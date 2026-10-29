@@ -15,6 +15,7 @@ export const connectionsApi = {
     request<ColumnInfo[]>(`/connections/${id}/columns?table=${encodeURIComponent(table)}`, { signal }),
   // Password-bearing inputs use direct calls, not query/mutation caches.
   test: (input: ConnectionInput) => request<TestResult>('/connections/test', { body: input }),
+  update: (id: number, input: ConnectionInput) => request<ConnectionView>(`/connections/${id}`, { method: 'PUT', body: input }),
   save: (input: ConnectionInput) => request<ConnectionView>('/connections', { body: input }),
   retest: (id: number) => request<TestResult>(`/connections/${id}/test`, { body: {} }),
 }

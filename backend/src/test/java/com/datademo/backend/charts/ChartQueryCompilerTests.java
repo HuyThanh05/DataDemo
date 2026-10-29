@@ -9,6 +9,56 @@ import static org.junit.jupiter.api.Assertions.*;
 import static com.datademo.backend.charts.ChartDtos.*;
 
 class ChartQueryCompilerTests {
+    @Test void distinctCountsUniqueNonNullValuesOnText() throws Exception {
+        var d=new Detail(1,"Text",1,"samples",List.of(new Column(1,"category","Group","varchar",false,true,false,true,"DIMENSION",List.of("COUNT","COUNT_DISTINCT"),"COUNT")));
+        var plan=compiler.compile(request("COUNT_DISTINCT","category","ASC",List.of()),d);
+        assertTrue(plan.sql().contains("COUNT(DISTINCT `category`)"));
+        try(var c=DriverManager.getConnection("jdbc:h2:mem:distinct-policy;MODE=MySQL");var st=c.createStatement()) {
+            st.execute("CREATE TABLE samples(category VARCHAR(100))");
+            st.execute("INSERT INTO samples VALUES('A'),('A'),('B'),(NULL)");
+            try(var r=st.executeQuery(plan.sql())) {while(r.next()) assertEquals(r.getString(1)==null?0:1,r.getInt(2));}
+        }
+    }
+    @Test void numericIdentifiersCannotBypassDatasetPolicy() {
+        var restricted=new Detail(1,"Other domain",1,"samples",List.of(
+            new Column(1,"category","Group","varchar",false,true,false,true),
+            new Column(2,"score","Numeric ID","int",false,true,true,true,"IDENTIFIER",List.of("COUNT"),"COUNT")));
+        assertDoesNotThrow(()->compiler.compile(request("COUNT","score","ASC",List.of()),restricted));
+        for(String aggregation:List.of("SUM","AVG","MIN","MAX"))
+            assertThrows(ApiFailure.class,()->compiler.compile(request(aggregation,"score","ASC",List.of()),restricted));
+    }
+    @Test void minMaxIgnoreNullAndRespectFilters() throws Exception {
+        try(var c=DriverManager.getConnection("jdbc:h2:mem:minmax-check;MODE=MySQL");var st=c.createStatement()) {
+            st.execute("CREATE TABLE samples(category VARCHAR(100),score DECIMAL(10,2))");
+            st.execute("INSERT INTO samples VALUES('A',12.50),('A',-2.25),('A',0),('A',NULL),('B',NULL)");
+            for(String aggregation:List.of("MIN","MAX")) {
+                assertThrows(ApiFailure.class,()->compiler.compile(request(aggregation,"category","ASC",List.of()),dataset));
+                var plan=compiler.compile(request(aggregation,"score","ASC",List.of()),dataset);
+                try(var r=st.executeQuery(plan.sql())) {
+                    assertTrue(r.next()); assertEquals("A",r.getString(1));
+                    assertEquals(0,r.getBigDecimal(2).compareTo(new java.math.BigDecimal(aggregation.equals("MIN")?"-2.25":"12.50")));
+                    assertTrue(r.next()); assertNull(r.getBigDecimal(2)); assertFalse(r.next());
+                }
+                var filtered=compiler.compile(request(aggregation,"score","ASC",List.of(new Filter("score","GTE","0"))),dataset);
+                try(var ps=c.prepareStatement(filtered.sql())) {
+                    ps.setObject(1,filtered.parameters().getFirst());
+                    try(var r=ps.executeQuery()) {assertTrue(r.next()); assertEquals(0,r.getBigDecimal(2).compareTo(new java.math.BigDecimal(aggregation.equals("MIN")?"0":"12.50"))); assertFalse(r.next());}
+                }
+            }
+        }
+    }
+    @Test void sumsNumericValuesAndRejectsText() throws Exception {
+        var plan=compiler.compile(request("SUM","score","ASC",List.of()),dataset);
+        assertThrows(ApiFailure.class,()->compiler.compile(request("SUM","category","ASC",List.of()),dataset));
+        try(var c=DriverManager.getConnection("jdbc:h2:mem:sum-check;MODE=MySQL");var st=c.createStatement()) {
+            st.execute("CREATE TABLE samples(category VARCHAR(100),score DECIMAL(10,2))");
+            st.execute("INSERT INTO samples VALUES('A',12.50),('A',-2.25),('A',0),('A',NULL),('B',NULL)");
+            try(var r=st.executeQuery(plan.sql())) {
+                assertTrue(r.next()); assertEquals("A",r.getString(1)); assertEquals(0,r.getBigDecimal(2).compareTo(new java.math.BigDecimal("10.25")));
+                assertTrue(r.next()); assertNull(r.getBigDecimal(2)); assertFalse(r.next());
+            }
+        }
+    }
     @Test void aggregatesSalesColumnsAndUsesTheRequestedMonetaryBuckets() throws Exception {
         var sales = new Detail(903, "Bán hàng", 19, "sales_records", List.of(
                 new Column(1, "product_name", "Sản phẩm", "varchar(100)", false, true, false, true),

@@ -7,6 +7,7 @@ import { chartsApi } from '../api'
 import { chartTypeLabels, chartTypeOptions } from '../chartTypes'
 import ChartPreview from './ChartPreview'
 import ChartFilters from './ChartFilters'
+import { aggregationOptions, savedSettings } from '../../datasets/columnPolicy'
 import { filterError, filterOperatorLabels, needsFilterValue, numericColumn } from '../filters'
 
 export default function ChartConfigurationForm({ dataset, saved, onSaved }: { dataset: DatasetDetail; saved?: SavedChart; onSaved?: (chart: SavedChart) => void }) {
@@ -28,11 +29,11 @@ export default function ChartConfigurationForm({ dataset, saved, onSaved }: { da
   const [saveError, setSaveError] = useState('')
   const filtersValid = filters.every(filter => !filterError(filter, dataset.columns))
   const dimensions = dataset.columns.filter(column => column.canGroup)
-  const metrics = dataset.columns.filter(column => aggregation === 'COUNT' || column.canAggregate)
+  const metrics = dataset.columns.filter(column => savedSettings(column).allowedAggregations.length > 0)
   const dimension = dimensions.find(column => column.name === dimensionName)
   const metric = metrics.find(column => column.name === metricName)
   const bucketValid = grouping === 'value' || !!(dimension && numericColumn(dimension) && min !== null && max !== null && size !== null && size > 0 && max > min && (max - min) / size <= 1000 && Math.abs((max - min) / size - Math.round((max - min) / size)) < 1e-9)
-  const configuration: ChartConfiguration | undefined = dimension && metric && filtersValid && bucketValid ? {
+  const configuration: ChartConfiguration | undefined = dimension && metric && savedSettings(metric).allowedAggregations.includes(aggregation) && filtersValid && bucketValid ? {
     datasetId: dataset.id, chartType, dimension: dimension.name, aggregation, metricColumn: metric.name, sortDirection, filters,
     bucket: grouping === 'interval' ? { min: min!, max: max!, size: size! } : null,
   } : undefined
@@ -40,7 +41,7 @@ export default function ChartConfigurationForm({ dataset, saved, onSaved }: { da
 
   function changeAggregation(value: Aggregation) {
     setAggregation(value)
-    if (value === 'AVG' && !dataset.columns.some(column => column.name === metricName && column.canAggregate)) setMetricName(undefined)
+    setNotice('')
   }
   async function save() {
     if (!configuration || saving) return
@@ -64,8 +65,12 @@ export default function ChartConfigurationForm({ dataset, saved, onSaved }: { da
         <Form.Item label="Loại biểu đồ" htmlFor="chart-type"><Select id="chart-type" value={chartType} onChange={setChartType} options={chartTypeOptions} /></Form.Item>
         <Form.Item label="Nhóm dữ liệu theo (Dimension)" htmlFor="chart-dimension" required><Select id="chart-dimension" placeholder="Chọn cột để chia nhóm" value={dimension?.name} onChange={value => { setDimensionName(value); setGrouping('value') }} showSearch optionFilterProp="label" options={options(dimensions)} /></Form.Item>
         <Form.Item label="Cách chia nhóm (Grouping)" htmlFor="chart-grouping"><Select id="chart-grouping" value={grouping} onChange={setGrouping} options={[{ value: 'value', label: 'Theo từng giá trị' }, { value: 'interval', label: 'Theo khoảng số', disabled: !dimension || !numericColumn(dimension) }]} /></Form.Item>
-        <Form.Item label="Cách tính cho mỗi nhóm (Aggregation)" htmlFor="chart-aggregation"><Select id="chart-aggregation" value={aggregation} onChange={changeAggregation} options={[{ value: 'AVG', label: 'Tính trung bình (AVG)' }, { value: 'COUNT', label: 'Đếm giá trị có dữ liệu (COUNT)' }]} /></Form.Item>
-        <Form.Item label="Cột dùng để tính (Metric Column)" htmlFor="chart-metric" required><Select id="chart-metric" placeholder="Chọn cột dùng để tính" value={metric?.name} onChange={setMetricName} showSearch optionFilterProp="label" options={options(metrics)} /></Form.Item>
+        <Form.Item label="Cột dùng để tính (Metric Column)" htmlFor="chart-metric" required><Select id="chart-metric" placeholder="Chọn cột dùng để tính trước" value={metric?.name} onChange={value => {
+          setMetricName(value); setNotice('')
+          const selected=metrics.find(c=>c.name===value)
+          if(selected) { const policy=savedSettings(selected); setAggregation(policy.defaultAggregation ?? policy.allowedAggregations[0]) }
+        }} showSearch optionFilterProp="label" options={options(metrics)} /></Form.Item>
+        <Form.Item label="Cách tính cho mỗi nhóm (Aggregation)" htmlFor="chart-aggregation"><Select id="chart-aggregation" disabled={!metric} placeholder="Chọn cột dùng để tính trước" value={metric && savedSettings(metric).allowedAggregations.includes(aggregation) ? aggregation : undefined} onChange={changeAggregation} options={aggregationOptions.filter(a=>metric && savedSettings(metric).allowedAggregations.includes(a.value))} /></Form.Item>
         <Form.Item label="Thứ tự các nhóm (Sort Order)" htmlFor="chart-sort"><Select id="chart-sort" value={sortDirection} onChange={setSortDirection} options={[{ value: 'ASC', label: 'Tăng dần' }, { value: 'DESC', label: 'Giảm dần' }]} /></Form.Item>
       </div>
       {grouping === 'interval' && <>
@@ -80,8 +85,8 @@ export default function ChartConfigurationForm({ dataset, saved, onSaved }: { da
       <ChartFilters columns={dataset.columns} filters={filters} onChange={setFilters} />
     </Form>
     {!dimensions.length && <Alert type="warning" showIcon title="Dataset không có cột được phép nhóm." className="section-alert" />}
-    {aggregation === 'AVG' && !metrics.length && <Alert type="warning" showIcon title="Dataset không có cột số để tính trung bình. Bạn có thể chọn Đếm giá trị có dữ liệu (COUNT)." className="section-alert" />}
-    <p className="footnote">Dữ liệu được chia thành nhóm theo cột đã chọn, rồi tính riêng cho từng nhóm. Tính trung bình (AVG) áp dụng cho cột số. Đếm giá trị có dữ liệu (COUNT) đếm các giá trị khác NULL, kể cả 0. Cả hai cách tính đều bỏ qua NULL.</p>
+    {!metrics.length && <Alert type="warning" showIcon title="Dataset chưa có cột được phép tính. Hãy cấu hình phép tính trong Dataset." className="section-alert" />}
+    <p className="footnote">Dữ liệu được chia thành nhóm theo cột đã chọn, rồi tính riêng cho từng nhóm. AVG (trung bình), SUM (tổng), MIN (nhỏ nhất) và MAX (lớn nhất) áp dụng cho cột số. Đếm giá trị có dữ liệu (COUNT) đếm các giá trị khác NULL, kể cả 0. Các cách tính đều bỏ qua NULL.</p>
     {dimension && metric && filtersValid && bucketValid
       ? <Alert type="success" showIcon title="Đã chọn đủ cấu hình cơ bản." description={`${chartType === 'table' ? 'Bảng' : `Biểu đồ ${chartTypeLabels[chartType].toLowerCase()}`} · Nhóm theo ${dimension.displayName} · ${aggregation}(${metric.displayName})`} />
       : <Alert type="info" showIcon title={dimension && metric ? 'Hãy hoàn tất hoặc xóa bộ lọc chưa hợp lệ.' : 'Chọn cột chia nhóm và cột dùng để tính để hoàn tất cấu hình cơ bản.'} />}
